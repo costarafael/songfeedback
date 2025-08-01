@@ -132,8 +132,7 @@ export async function POST(request: NextRequest) {
         text: transcriptionResult.text,
         language: transcriptionResult.language_code,
         confidence: transcriptionResult.language_probability,
-        wordCount: transcriptionResult.words?.length || 0,
-        duration: audioDuration
+        wordCount: transcriptionResult.words?.length || 0
       }
     })
 

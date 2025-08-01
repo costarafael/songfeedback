@@ -86,6 +86,8 @@ export default function PlaylistPage() {
     if (!currentSong) return
 
     async function fetchReactions() {
+      if (!currentSong) return
+      
       // Fetch existing reactions only for this session and current song
       const { data: reactionsData } = await supabase
         .from('reactions')

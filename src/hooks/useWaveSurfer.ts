@@ -76,12 +76,8 @@ export function useWaveSurfer({ audioUrl, onTimeUpdate, onDurationChange, onPlay
         onTimeUpdate?.(wavesurfer.getCurrentTime())
       })
 
+      // Interaction event for better timestamp accuracy when clicking on waveform
       wavesurfer.on('interaction', () => {
-        onTimeUpdate?.(wavesurfer.getCurrentTime())
-      })
-
-      // Add seek event for better timestamp accuracy
-      wavesurfer.on('seek', () => {
         onTimeUpdate?.(wavesurfer.getCurrentTime())
       })
 

@@ -323,7 +323,7 @@ export default function PlaylistManager() {
                     <Droppable droppableId="playlist-songs">
                       {(provided) => (
                         <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                          {selectedPlaylist.songs.map((playlistSong, index) => (
+                          {selectedPlaylist.songs?.map((playlistSong, index) => (
                             <Draggable key={playlistSong.id} draggableId={playlistSong.id} index={index}>
                               {(provided, snapshot) => (
                                 <div
