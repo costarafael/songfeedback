@@ -1,0 +1,20 @@
+
+> feedback-song@0.1.0 dev
+> next dev
+
+ ⚠ Port 3000 is in use by process 1845
+18903, using available port 3001 instead.
+   ▲ Next.js 15.4.5
+   - Local:        http://localhost:3001
+   - Network:      http://192.168.15.6:3001
+   - Environments: .env.local
+   - Experiments (use with caution):
+     · serverActions
+
+ ✓ Starting...
+ ✓ Ready in 1555ms
+ ○ Compiling /player/[id] ...
+ ✓ Compiled /player/[id] in 2.3s (1526 modules)
+ ✓ Compiled in 270ms (708 modules)
+ HEAD /player/1a62c388-3fa3-44b5-9436-278e7e54793f 200 in 2940ms
+[?25h

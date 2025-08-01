@@ -1,0 +1,56 @@
+{
+  "language_code": "por",
+  "language_probability": 0.9764891862869263,
+  "text": "Apenas um teste aqui.",
+  "words": [
+    {
+      "text": "Apenas",
+      "start": 0.819,
+      "end": 1.819,
+      "type": "word",
+      "logprob": 0
+    },
+    {
+      "text": " ",
+      "start": 1.819,
+      "end": 1.819,
+      "type": "spacing",
+      "logprob": 0
+    },
+    {
+      "text": "um",
+      "start": 1.819,
+      "end": 2.119,
+      "type": "word",
+      "logprob": 0
+    },
+    {
+      "text": " ",
+      "start": 2.119,
+      "end": 2.119,
+      "type": "spacing",
+      "logprob": 0
+    },
+    {
+      "text": "teste",
+      "start": 2.119,
+      "end": 2.819,
+      "type": "word",
+      "logprob": 0
+    },
+    {
+      "text": " ",
+      "start": 2.819,
+      "end": 2.819,
+      "type": "spacing",
+      "logprob": 0
+    },
+    {
+      "text": "aqui.",
+      "start": 2.819,
+      "end": 3.499,
+      "type": "word",
+      "logprob": 0
+    }
+  ]
+}
