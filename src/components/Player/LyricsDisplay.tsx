@@ -132,7 +132,7 @@ export default function LyricsDisplay({
               className={`
                 font-ibm-plex-mono text-sm transition-all duration-500 inline
                 ${wordData.isActive 
-                  ? 'text-blue-600 dark:text-blue-400 font-medium' 
+                  ? 'text-violet-600 dark:text-violet-400 font-medium' 
                   : wordData.segmentType === 'not_heard'
                   ? 'text-gray-400 dark:text-gray-600'
                   : wordData.segmentType === 'navigated'

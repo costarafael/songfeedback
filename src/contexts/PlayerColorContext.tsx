@@ -63,9 +63,9 @@ const colorSchemes: Record<PlayerColorTheme, PlayerColors> = {
     playedLight: '#6d28d9',   // violet-700 (muito vibrante)
     playedDark: '#a855f7',    // violet-400 (brilhante)
     
-    // UI backgrounds (roxo mais intenso)
+    // UI backgrounds (roxo sutil)
     backgroundLight: '#f3f0ff', // violet-50 mais saturado
-    backgroundDark: '#1a0b2e',  // roxo escuro profundo personalizado
+    backgroundDark: '#1f1729',  // apenas 4% mais escuro que o fundo padrão
     accentLight: '#a78bfa',    // violet-400 vibrante
     accentDark: '#7c3aed',     // violet-600 intenso
     
