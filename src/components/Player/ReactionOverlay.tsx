@@ -41,7 +41,7 @@ export default function ReactionOverlay({
               }}
               className="absolute cursor-pointer pointer-events-auto group"
               style={{
-                left: `calc(${reaction.startPercent + (reaction.widthPercent / 2)}% - 8px)`,
+                left: `calc(12px + (100% - 24px) * ${(reaction.startPercent + (reaction.widthPercent / 2)) / 100} - 8px)`,
                 top: '50%',
                 transform: 'translateY(-50%)',
                 zIndex: 30
