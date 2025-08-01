@@ -41,14 +41,12 @@ export async function DELETE(
       )
     }
 
-    // Update positions of remaining songs
+    // Update positions of remaining songs using RPC
     const { error: updateError } = await supabaseAdmin
-      .from('playlist_songs')
-      .update({
-        position: supabaseAdmin.raw('position - 1')
+      .rpc('update_playlist_positions_after_delete', {
+        playlist_id: id,
+        deleted_position: removedSong.position
       })
-      .eq('playlist_id', id)
-      .gt('position', removedSong.position)
 
     if (updateError) {
       console.error('Error updating positions:', updateError)

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 import { FileText, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Song, Reaction, ReactionType } from '@/lib/types'
@@ -13,6 +13,7 @@ import { useNeumorphicStyles } from '@/hooks/useNeumorphicStyles'
 
 export default function PlayerPage() {
   const params = useParams()
+  const router = useRouter()
   const songId = Array.isArray(params.id) ? params.id[0] : params.id
   const { getButtonStyles, getPanelStyles, getTextStyles } = useNeumorphicStyles()
   
@@ -85,7 +86,7 @@ export default function PlayerPage() {
     }
 
     fetchSong()
-  }, [songId, sessionId, router])
+  }, [songId, sessionId])
 
   const handleReaction = async (reactionType: ReactionType) => {
     if (!song) return
