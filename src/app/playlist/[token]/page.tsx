@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import { List } from 'lucide-react'
+import { List, FileText, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Song, Reaction, ReactionType } from '@/lib/types'
 import WaveSurferPlayer from '@/components/Player/WaveSurferPlayer'
@@ -303,8 +303,30 @@ export default function PlaylistPage() {
               onReactionClick={handleReactionClick}
             />
 
-            <div className="flex justify-between items-center w-full max-w-[600px] px-2 text-sm text-muted-foreground">
+            <div className="flex justify-between items-center w-full max-w-[600px] px-2 text-sm" style={getTextStyles('secondary')}>
               <span className="font-mono">{formatTime(currentTime)}</span>
+              
+              {/* Botão Ver Letra / Fechar */}
+              {currentSong.transcription_data && (
+                <button
+                  onClick={() => setShowLyrics(!showLyrics)}
+                  className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm"
+                  style={getButtonStyles(showLyrics, 'small')}
+                >
+                  {showLyrics ? (
+                    <>
+                      <X className="w-4 h-4" />
+                      <span>fechar</span>
+                    </>
+                  ) : (
+                    <>
+                      <FileText className="w-4 h-4" />
+                      <span>ver letra</span>
+                    </>
+                  )}
+                </button>
+              )}
+              
               <span className="font-mono">{formatTime(duration)}</span>
             </div>
           </div>

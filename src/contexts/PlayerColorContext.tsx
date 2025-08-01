@@ -57,29 +57,29 @@ const colorSchemes: Record<PlayerColorTheme, PlayerColors> = {
     highlightDark: '#ffffff20'    // dimmed white highlight mais visível
   },
   purple: {
-    // WaveSurfer
-    unplayedLight: '#c4b5fd', // violet-300 (mais claro e visível)
-    unplayedDark: '#5b21b6',  // violet-800 (mais escuro para contraste)
-    playedLight: '#7c3aed',   // violet-600 (mais vibrante)
-    playedDark: '#8b5cf6',    // violet-500
+    // WaveSurfer (cores mais vibrantes)
+    unplayedLight: '#a78bfa', // violet-400 (mais vibrante)
+    unplayedDark: '#4c1d95',  // violet-900 (contraste máximo)
+    playedLight: '#6d28d9',   // violet-700 (muito vibrante)
+    playedDark: '#a855f7',    // violet-400 (brilhante)
     
-    // UI backgrounds (purple mais contrastante)
-    backgroundLight: '#f5f3ff', // violet-50 intensificado
-    backgroundDark: '#1e1b3a',  // purple escuro mais profundo
-    accentLight: '#c4b5fd',    // violet-300 mais vibrante
-    accentDark: '#6d28d9',     // violet-700 mais intenso
+    // UI backgrounds (roxo mais intenso)
+    backgroundLight: '#f3f0ff', // violet-50 mais saturado
+    backgroundDark: '#1a0b2e',  // roxo escuro profundo personalizado
+    accentLight: '#a78bfa',    // violet-400 vibrante
+    accentDark: '#7c3aed',     // violet-600 intenso
     
-    // Text colors
-    textPrimaryLight: '#4c1d95',   // violet-900
-    textPrimaryDark: '#f5f3ff',    // violet-50
-    textSecondaryLight: '#7c3aed', // violet-600
-    textSecondaryDark: '#c4b5fd',  // violet-300
+    // Text colors (maior contraste)
+    textPrimaryLight: '#3730a3',   // indigo-800 (mais escuro)
+    textPrimaryDark: '#f8fafc',    // slate-50 (branco puro)
+    textSecondaryLight: '#6d28d9', // violet-700 (mais vibrante)
+    textSecondaryDark: '#a78bfa',  // violet-400 (mais claro)
     
-    // Neumorphic shadows (purple muito mais visível)
-    shadowLight: '#7c3aed70',     // violet-600 shadow bem visível
-    shadowDark: '#5b21b680',      // violet-800 shadow muito forte
-    highlightLight: '#ffffff90',  // branco puro para highlight
-    highlightDark: '#c4b5fd40'    // violet-300 highlight mais visível
+    // Neumorphic shadows (sombras roxas muito visíveis)
+    shadowLight: '#6d28d980',     // violet-700 shadow forte
+    shadowDark: '#4c1d9590',      // violet-900 shadow muito profundo
+    highlightLight: '#ffffff95',  // branco quase opaco
+    highlightDark: '#a78bfa50'    // violet-400 highlight bem visível
   }
 }
 
