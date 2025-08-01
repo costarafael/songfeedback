@@ -83,10 +83,18 @@ export default function UploadForm() {
         body: formData
       })
 
-      const result = await response.json()
+      let result
+      try {
+        result = await response.json()
+      } catch (jsonError) {
+        // Se não conseguir fazer parse do JSON, pode ser uma página de erro HTML
+        const text = await response.text()
+        console.error('Response is not JSON:', text.substring(0, 200))
+        throw new Error(`Erro no servidor (${response.status}): Resposta inválida`)
+      }
 
       if (!response.ok) {
-        throw new Error(result.error || 'Erro no upload')
+        throw new Error(result.error || `Erro HTTP ${response.status}`)
       }
 
       setMessage('Música enviada com sucesso!')

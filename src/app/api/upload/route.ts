@@ -8,6 +8,15 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey)
 
 export async function POST(request: NextRequest) {
   try {
+    // Check content length first
+    const contentLength = request.headers.get('content-length')
+    if (contentLength && parseInt(contentLength) > 20 * 1024 * 1024) { // 20MB
+      return NextResponse.json(
+        { error: 'Arquivo muito grande. Limite: 20MB' },
+        { status: 413 }
+      )
+    }
+
     const formData = await request.formData()
     const file = formData.get('file') as File
     const title = formData.get('title') as string
@@ -18,6 +27,14 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         { error: 'Arquivo e título são obrigatórios' },
         { status: 400 }
+      )
+    }
+
+    // Check file size
+    if (file.size > 20 * 1024 * 1024) { // 20MB
+      return NextResponse.json(
+        { error: 'Arquivo muito grande. Limite: 20MB' },
+        { status: 413 }
       )
     }
 
