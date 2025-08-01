@@ -83,14 +83,34 @@ export default function UploadForm() {
         body: formData
       })
 
+      // Log detailed response information
+      console.log('Upload response status:', response.status)
+      console.log('Upload response headers:', Object.fromEntries(response.headers.entries()))
+      
       let result
+      let responseText = ''
       try {
+        const clonedResponse = response.clone()
+        responseText = await clonedResponse.text()
+        console.log('Raw response text (first 500 chars):', responseText.substring(0, 500))
+        
         result = await response.json()
       } catch (jsonError) {
-        // Se não conseguir fazer parse do JSON, pode ser uma página de erro HTML
-        const text = await response.text()
-        console.error('Response is not JSON:', text.substring(0, 200))
-        throw new Error(`Erro no servidor (${response.status}): Resposta inválida`)
+        console.error('JSON parse error:', jsonError)
+        console.error('Full response text:', responseText)
+        
+        // Check if it's a Vercel error page
+        if (responseText.includes('Request Entity Too Large') || responseText.includes('413')) {
+          throw new Error('Arquivo muito grande para upload (limite: 20MB)')
+        }
+        if (responseText.includes('Timeout') || responseText.includes('timeout')) {
+          throw new Error('Timeout no upload - tente um arquivo menor')
+        }
+        if (responseText.includes('Internal Server Error') || responseText.includes('500')) {
+          throw new Error('Erro interno do servidor - tente novamente')
+        }
+        
+        throw new Error(`Erro no servidor (${response.status}): ${responseText.substring(0, 100)}...`)
       }
 
       if (!response.ok) {
