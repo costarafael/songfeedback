@@ -86,7 +86,8 @@ export default function PlayerPage() {
     }
 
     fetchSong()
-  }, [songId, sessionId]) // router is stable and doesn't need to be in deps
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [songId, sessionId])
 
   const handleReaction = async (reactionType: ReactionType) => {
     if (!song) return

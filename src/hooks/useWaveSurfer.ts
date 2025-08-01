@@ -106,6 +106,7 @@ export function useWaveSurfer({ audioUrl, onTimeUpdate, onDurationChange, onPlay
         wavesurferRef.current = null
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [audioUrl, colorTheme]) // Re-create when color theme changes
 
   const togglePlayPause = useCallback(() => {

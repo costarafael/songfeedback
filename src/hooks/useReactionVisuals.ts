@@ -44,7 +44,8 @@ export function useReactionVisuals({
     }
 
     return () => {
-      regionsRef.current.clear()
+      const regions = regionsRef.current
+      regions?.clear()
     }
   }, [wavesurfer])
 

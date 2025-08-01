@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 export default function SetupPage() {
   const [status, setStatus] = useState<string>('')
@@ -74,12 +75,12 @@ export default function SetupPage() {
         </div>
 
         <div className="mt-6 text-center">
-          <a 
+          <Link 
             href="/" 
             className="text-blue-600 hover:text-blue-800 text-sm"
           >
             ← Voltar ao início
-          </a>
+          </Link>
         </div>
       </div>
     </div>
