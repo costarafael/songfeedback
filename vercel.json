@@ -8,5 +8,8 @@
     "env": {
       "NEXT_PRIVATE_STANDALONE": "true"
     }
+  },
+  "limits": {
+    "maxRequestBodySize": "50mb"
   }
 }

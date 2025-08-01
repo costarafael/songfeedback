@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { Upload } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useDirectUpload } from '@/hooks/useDirectUpload'
 
 export default function UploadForm() {
   const [title, setTitle] = useState('')
@@ -15,6 +16,7 @@ export default function UploadForm() {
   const [message, setMessage] = useState('')
   const [transcriptionResult, setTranscriptionResult] = useState<string>('')
   const router = useRouter()
+  const { uploadFile: directUpload, uploading: directUploading, uploadProgress } = useDirectUpload()
 
   // Função para extrair duração do arquivo de áudio
   const extractAudioDuration = (audioFile: File): Promise<number> => {
@@ -66,57 +68,10 @@ export default function UploadForm() {
     setMessage('')
 
     try {
-      // Prepare form data
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('title', title)
-      formData.append('artist', artist)
+      // Use direct upload to bypass Vercel function payload limits
+      console.log('Starting direct upload...')
+      const result = await directUpload(file, title, artist, duration)
       
-      // Adicionar duração se foi extraída
-      if (duration !== null) {
-        formData.append('duration', duration.toString())
-      }
-
-      // Upload via API
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      })
-
-      // Log detailed response information
-      console.log('Upload response status:', response.status)
-      console.log('Upload response headers:', Object.fromEntries(response.headers.entries()))
-      
-      let result
-      let responseText = ''
-      try {
-        const clonedResponse = response.clone()
-        responseText = await clonedResponse.text()
-        console.log('Raw response text (first 500 chars):', responseText.substring(0, 500))
-        
-        result = await response.json()
-      } catch (jsonError) {
-        console.error('JSON parse error:', jsonError)
-        console.error('Full response text:', responseText)
-        
-        // Check if it's a Vercel error page
-        if (responseText.includes('Request Entity Too Large') || responseText.includes('413')) {
-          throw new Error('Arquivo muito grande para upload (limite: 20MB)')
-        }
-        if (responseText.includes('Timeout') || responseText.includes('timeout')) {
-          throw new Error('Timeout no upload - tente um arquivo menor')
-        }
-        if (responseText.includes('Internal Server Error') || responseText.includes('500')) {
-          throw new Error('Erro interno do servidor - tente novamente')
-        }
-        
-        throw new Error(`Erro no servidor (${response.status}): ${responseText.substring(0, 100)}...`)
-      }
-
-      if (!response.ok) {
-        throw new Error(result.error || `Erro HTTP ${response.status}`)
-      }
-
       setMessage('Música enviada com sucesso!')
       
       // Se transcrição está habilitada, processar automaticamente
@@ -282,10 +237,10 @@ export default function UploadForm() {
 
       <button
         type="submit"
-        disabled={uploading || transcribing || !file || !title}
+        disabled={uploading || directUploading || transcribing || !file || !title}
         className="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
       >
-        {uploading ? 'Enviando...' : 
+        {uploading || directUploading ? (uploadProgress > 0 ? `Enviando... ${uploadProgress}%` : 'Enviando...') : 
          transcribing ? 'Transcrevendo...' : 
          'Enviar Música'}
       </button>
