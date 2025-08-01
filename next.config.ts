@@ -8,12 +8,7 @@ const nextConfig: NextConfig = {
     }
   },
   // Disable strict mode in development to prevent double renders that cause WaveSurfer issues
-  reactStrictMode: false,
-  // Remove Next.js development indicator (floating icon)
-  devIndicators: {
-    buildActivity: false,
-    buildActivityPosition: 'bottom-right'
-  }
+  reactStrictMode: false
 };
 
 export default nextConfig;

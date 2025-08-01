@@ -52,10 +52,10 @@ export async function GET(
 
     // Calcular estatísticas agregadas
     const totalSessions = sessionStats?.length || 0
-    const avgCompletionRate = totalSessions > 0 
+    const avgCompletionRate = totalSessions > 0 && sessionStats
       ? sessionStats.reduce((sum, s) => sum + (s.completion_percentage || 0), 0) / totalSessions 
       : 0
-    const avgListenedTime = totalSessions > 0
+    const avgListenedTime = totalSessions > 0 && sessionStats
       ? sessionStats.reduce((sum, s) => sum + (s.total_listened_time || 0), 0) / totalSessions
       : 0
     const totalSkips = sessionStats?.reduce((sum, s) => sum + (s.skip_count || 0), 0) || 0

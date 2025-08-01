@@ -86,7 +86,7 @@ export default function PlayerPage() {
     }
 
     fetchSong()
-  }, [songId, sessionId])
+  }, [songId, sessionId]) // router is stable and doesn't need to be in deps
 
   const handleReaction = async (reactionType: ReactionType) => {
     if (!song) return
