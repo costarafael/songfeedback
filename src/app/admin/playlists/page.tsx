@@ -54,11 +54,18 @@ export default function PlaylistsPage() {
       const response = await fetch('/api/playlists')
       if (response.ok) {
         const data = await response.json()
-        setPlaylists(data)
+        // Garantir que data seja sempre um array
+        setPlaylists(Array.isArray(data) ? data : [])
+      } else {
+        const errorText = await response.text()
+        console.error('Erro na resposta da API:', response.status, errorText)
+        message.error(`Erro ao carregar playlists: ${response.status}`)
+        setPlaylists([])
       }
     } catch (error) {
       console.error('Erro ao carregar playlists:', error)
-      message.error('Erro ao carregar playlists')
+      message.error(`Erro ao carregar playlists: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
+      setPlaylists([])
     } finally {
       setLoading(false)
     }
@@ -69,10 +76,16 @@ export default function PlaylistsPage() {
       const response = await fetch('/api/songs')
       if (response.ok) {
         const data = await response.json()
-        setSongs(data)
+        // Garantir que data seja sempre um array
+        setSongs(Array.isArray(data) ? data : [])
+      } else {
+        const errorText = await response.text()
+        console.error('Erro na resposta da API songs:', response.status, errorText)
+        setSongs([])
       }
     } catch (error) {
       console.error('Erro ao carregar músicas:', error)
+      setSongs([])
     }
   }
 
@@ -86,10 +99,13 @@ export default function PlaylistsPage() {
         message.success('Playlist excluída com sucesso')
         fetchPlaylists()
       } else {
-        message.error('Erro ao excluir playlist')
+        const errorText = await response.text()
+        console.error('Erro ao excluir playlist:', response.status, errorText)
+        message.error(`Erro ao excluir playlist: ${response.status}`)
       }
     } catch (error) {
-      message.error('Erro ao excluir playlist')
+      console.error('Erro ao excluir playlist:', error)
+      message.error(`Erro ao excluir playlist: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     }
   }
 
@@ -127,10 +143,13 @@ export default function PlaylistsPage() {
         setEditingId(null)
         fetchPlaylists()
       } else {
-        message.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist`)
+        const errorText = await response.text()
+        console.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist:`, response.status, errorText)
+        message.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist: ${response.status}`)
       }
     } catch (error) {
-      message.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist`)
+      console.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist:`, error)
+      message.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     }
   }
 
@@ -140,7 +159,7 @@ export default function PlaylistsPage() {
     message.success('Link copiado para a área de transferência!')
   }
 
-  const filteredPlaylists = playlists.filter(playlist =>
+  const filteredPlaylists = (playlists || []).filter(playlist =>
     playlist.name.toLowerCase().includes(searchText.toLowerCase()) ||
     (playlist.description && playlist.description.toLowerCase().includes(searchText.toLowerCase()))
   )

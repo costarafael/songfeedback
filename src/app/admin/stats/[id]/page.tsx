@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Row, Col, Statistic, Typography, Space, Tag, Progress, Timeline } from 'antd'
+import { Card, Row, Col, Statistic, Typography, Space, Tag, Progress, Timeline, message } from 'antd'
 import { 
   SoundOutlined, 
   EyeOutlined,
@@ -48,7 +48,10 @@ function formatTime(time: number): string {
 function processReactionStats(reactions: Reaction[]): ReactionStats[] {
   const statsMap = new Map<string, ReactionStats>()
 
-  reactions.forEach(reaction => {
+  // Garantir que reactions seja um array válido
+  const validReactions = Array.isArray(reactions) ? reactions : []
+  
+  validReactions.forEach(reaction => {
     if (!statsMap.has(reaction.reaction_type)) {
       statsMap.set(reaction.reaction_type, {
         reaction_type: reaction.reaction_type,
@@ -82,21 +85,30 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
         const songResponse = await fetch(`/api/songs`)
         if (songResponse.ok) {
           const songs = await songResponse.json()
-          const foundSong = songs.find((s: Song) => s.id === id)
+          // Garantir que songs seja um array antes de usar find
+          const songsArray = Array.isArray(songs) ? songs : []
+          const foundSong = songsArray.find((s: Song) => s.id === id)
           if (foundSong) {
             setSong(foundSong)
+          } else {
+            console.error('Música não encontrada:', id)
           }
+        } else {
+          const errorText = await songResponse.text()
+          console.error('Erro ao carregar dados da música:', songResponse.status, errorText)
         }
 
         // Fetch analytics
         const analyticsData = await fetchSongAnalytics(id)
         if (analyticsData) {
           setAnalytics(analyticsData)
-          setReactions(analyticsData.reactions || [])
+          // Garantir que reactions seja sempre um array
+          setReactions(Array.isArray(analyticsData.reactions) ? analyticsData.reactions : [])
         }
 
       } catch (error) {
         console.error('Error loading song data:', error)
+        message.error(`Erro ao carregar dados: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
       } finally {
         setLoading(false)
       }

@@ -44,11 +44,18 @@ export default function SongsPage() {
       const response = await fetch('/api/songs')
       if (response.ok) {
         const data = await response.json()
-        setSongs(data)
+        // Garantir que data seja sempre um array
+        setSongs(Array.isArray(data) ? data : [])
+      } else {
+        const errorText = await response.text()
+        console.error('Erro na resposta da API:', response.status, errorText)
+        message.error(`Erro ao carregar músicas: ${response.status}`)
+        setSongs([])
       }
     } catch (error) {
       console.error('Erro ao carregar músicas:', error)
-      message.error('Erro ao carregar músicas')
+      message.error(`Erro ao carregar músicas: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
+      setSongs([])
     } finally {
       setLoading(false)
     }
@@ -66,10 +73,13 @@ export default function SongsPage() {
         message.success('Música excluída com sucesso')
         fetchSongs()
       } else {
-        message.error('Erro ao excluir música')
+        const errorText = await response.text()
+        console.error('Erro ao excluir música:', response.status, errorText)
+        message.error(`Erro ao excluir música: ${response.status}`)
       }
     } catch (error) {
-      message.error('Erro ao excluir música')
+      console.error('Erro ao excluir música:', error)
+      message.error(`Erro ao excluir música: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     }
   }
 
@@ -98,10 +108,13 @@ export default function SongsPage() {
         setEditingId(null)
         fetchSongs()
       } else {
-        message.error('Erro ao atualizar música')
+        const errorText = await response.text()
+        console.error('Erro ao atualizar música:', response.status, errorText)
+        message.error(`Erro ao atualizar música: ${response.status}`)
       }
     } catch (error) {
-      message.error('Erro ao atualizar música')
+      console.error('Erro ao atualizar música:', error)
+      message.error(`Erro ao atualizar música: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     }
   }
 
@@ -112,7 +125,7 @@ export default function SongsPage() {
     return `${mins}:${secs.toString().padStart(2, '0')}`
   }
 
-  const filteredSongs = songs.filter(song =>
+  const filteredSongs = (songs || []).filter(song =>
     song.title.toLowerCase().includes(searchText.toLowerCase()) ||
     (song.artist && song.artist.toLowerCase().includes(searchText.toLowerCase()))
   )

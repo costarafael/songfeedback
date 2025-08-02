@@ -113,6 +113,30 @@
       "namedRegex": "^/admin(?:/)?$"
     },
     {
+      "page": "/admin/playlists",
+      "regex": "^/admin/playlists(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/playlists(?:/)?$"
+    },
+    {
+      "page": "/admin/songs",
+      "regex": "^/admin/songs(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/songs(?:/)?$"
+    },
+    {
+      "page": "/admin/stats",
+      "regex": "^/admin/stats(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/stats(?:/)?$"
+    },
+    {
+      "page": "/admin/upload",
+      "regex": "^/admin/upload(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/admin/upload(?:/)?$"
+    },
+    {
       "page": "/setup",
       "regex": "^/setup(?:/)?$",
       "routeKeys": {},

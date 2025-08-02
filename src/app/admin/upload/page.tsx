@@ -81,7 +81,9 @@ export default function UploadPage() {
       })
 
       if (!createSongResponse.ok) {
-        throw new Error('Erro ao criar registro da música')
+        const errorText = await createSongResponse.text()
+        console.error('Erro ao criar registro da música:', createSongResponse.status, errorText)
+        throw new Error(`Erro ao criar registro da música: ${createSongResponse.status} - ${errorText}`)
       }
 
       const createdSong = await createSongResponse.json()

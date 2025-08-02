@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Row, Col, Statistic, Table, Typography, Space, Tag, Button } from 'antd'
+import { Card, Row, Col, Statistic, Table, Typography, Space, Tag, Button, message } from 'antd'
 import { 
   SoundOutlined, 
   UnorderedListOutlined, 
@@ -53,11 +53,13 @@ export default function StatsOverviewPage() {
       
       // Fetch songs count
       const songsResponse = await fetch('/api/songs')
-      const songs = songsResponse.ok ? await songsResponse.json() : []
+      const songsData = songsResponse.ok ? await songsResponse.json() : []
+      const songs = Array.isArray(songsData) ? songsData : []
       
       // Fetch playlists count
       const playlistsResponse = await fetch('/api/playlists')
-      const playlists = playlistsResponse.ok ? await playlistsResponse.json() : []
+      const playlistsData = playlistsResponse.ok ? await playlistsResponse.json() : []
+      const playlists = Array.isArray(playlistsData) ? playlistsData : []
 
       // Calculate stats from songs data
       let totalListens = 0
@@ -114,6 +116,7 @@ export default function StatsOverviewPage() {
 
     } catch (error) {
       console.error('Erro ao carregar estatísticas:', error)
+      message.error(`Erro ao carregar estatísticas: ${error instanceof Error ? error.message : 'Erro desconhecido'}`)
     } finally {
       setLoading(false)
     }
