@@ -4,7 +4,7 @@ import React, { useState } from 'react'
 import { Layout, Menu, Button, Typography, Breadcrumb, Avatar } from 'antd'
 import {
   DashboardOutlined,
-  MusicOutlined,
+  SoundOutlined,
   UnorderedListOutlined,
   CloudUploadOutlined,
   BarChartOutlined,

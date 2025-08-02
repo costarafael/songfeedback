@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Card, Statistic, Row, Col, List, Avatar, Button, Space, Typography, Tag, Empty } from 'antd'
 import {
-  MusicOutlined,
+  SoundOutlined,
   UnorderedListOutlined,
   UserOutlined,
   PlayCircleOutlined,
@@ -101,7 +101,7 @@ export default function AdminDashboard() {
     {
       title: 'Gerenciar Músicas',
       description: 'Ver todas as músicas',
-      icon: <MusicOutlined />,
+      icon: <SoundOutlined />,
       color: '#fa8c16',
       action: () => router.push('/admin/songs')
     }
@@ -116,7 +116,7 @@ export default function AdminDashboard() {
             <Statistic
               title="Total de Músicas"
               value={stats.totalSongs}
-              prefix={<MusicOutlined />}
+              prefix={<SoundOutlined />}
               loading={loading}
             />
           </Card>
@@ -252,7 +252,7 @@ export default function AdminDashboard() {
                     <List.Item.Meta
                       avatar={
                         <Avatar 
-                          icon={<MusicOutlined />} 
+                          icon={<SoundOutlined />} 
                           style={{ backgroundColor: '#8b5cf6' }}
                         />
                       }
