@@ -20,11 +20,56 @@ interface OnboardingModalProps {
 export function OnboardingModal({ steps, isOpen, onClose, onComplete }: OnboardingModalProps) {
   const [currentStep, setCurrentStep] = useState(0)
   const [targetElement, setTargetElement] = useState<Element | null>(null)
+  const [modalPosition, setModalPosition] = useState({ top: '50%', left: '50%', transform: 'translate(-50%, -50%)' })
 
   useEffect(() => {
     if (isOpen && steps[currentStep]?.targetSelector) {
       const element = document.querySelector(steps[currentStep].targetSelector!)
       setTargetElement(element)
+      
+      if (element) {
+        const rect = element.getBoundingClientRect()
+        const viewportHeight = window.innerHeight
+        const viewportWidth = window.innerWidth
+        const modalWidth = 320 // Estimated modal width
+        const modalHeight = 200 // Estimated modal height
+        
+        let top = '50%'
+        let left = '50%'
+        let transform = 'translate(-50%, -50%)'
+        
+        // Smart positioning logic
+        const spaceAbove = rect.top
+        const spaceBelow = viewportHeight - rect.bottom
+        const spaceLeft = rect.left
+        const spaceRight = viewportWidth - rect.right
+        
+        // Prefer positioning where there's more space
+        if (spaceBelow > modalHeight + 20 && spaceBelow > spaceAbove) {
+          // Position below
+          top = `${rect.bottom + 20}px`
+          left = `${Math.min(rect.left + rect.width / 2, viewportWidth - modalWidth / 2 - 20)}px`
+          transform = 'translateX(-50%)'
+        } else if (spaceAbove > modalHeight + 20) {
+          // Position above
+          top = `${rect.top - modalHeight - 20}px`
+          left = `${Math.min(rect.left + rect.width / 2, viewportWidth - modalWidth / 2 - 20)}px`
+          transform = 'translateX(-50%)'
+        } else if (spaceRight > modalWidth + 20) {
+          // Position to the right
+          top = `${Math.min(rect.top + rect.height / 2, viewportHeight - modalHeight / 2 - 20)}px`
+          left = `${rect.right + 20}px`
+          transform = 'translateY(-50%)'
+        } else if (spaceLeft > modalWidth + 20) {
+          // Position to the left
+          top = `${Math.min(rect.top + rect.height / 2, viewportHeight - modalHeight / 2 - 20)}px`
+          left = `${rect.left - modalWidth - 20}px`
+          transform = 'translateY(-50%)'
+        }
+        // Otherwise, keep center position
+        
+        setModalPosition({ top, left, transform })
+      }
     }
   }, [isOpen, currentStep, steps])
 
@@ -50,51 +95,54 @@ export function OnboardingModal({ steps, isOpen, onClose, onComplete }: Onboardi
     <>
       {/* Overlay escuro */}
       <div 
-        className="fixed inset-0 bg-black/60 z-50 transition-opacity duration-300"
+        className="fixed inset-0 bg-black/40 z-50 transition-opacity duration-300"
         onClick={handleClose}
       />
       
       {/* Highlight do elemento alvo */}
       {targetElement && (
         <div
-          className="fixed z-[51] border-4 border-violet-400 rounded-lg shadow-lg shadow-violet-400/50 pointer-events-none transition-all duration-300"
+          className="fixed z-[51] border-2 border-violet-400 rounded-lg shadow-lg shadow-violet-400/30 pointer-events-none transition-all duration-300"
           style={{
-            top: targetElement.getBoundingClientRect().top - 8,
-            left: targetElement.getBoundingClientRect().left - 8,
-            width: targetElement.getBoundingClientRect().width + 16,
-            height: targetElement.getBoundingClientRect().height + 16,
+            top: targetElement.getBoundingClientRect().top - 4,
+            left: targetElement.getBoundingClientRect().left - 4,
+            width: targetElement.getBoundingClientRect().width + 8,
+            height: targetElement.getBoundingClientRect().height + 8,
           }}
         />
       )}
 
-      {/* Modal de conteúdo */}
-      <div className="fixed inset-0 z-[52] flex items-center justify-center p-4">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
-          {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+      {/* Modal de conteúdo - menor e mais elegante */}
+      <div 
+        className="fixed z-[52] w-80 max-w-[90vw]"
+        style={modalPosition}
+      >
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Header compacto */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+            <h3 className="text-sm font-semibold text-gray-900 dark:text-white">
               {currentStepData.title}
-            </h2>
+            </h3>
             <button
               onClick={handleClose}
-              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors p-1"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Conteúdo */}
-          <div className="p-6">
-            <p className="text-gray-600 dark:text-gray-300 leading-relaxed mb-6">
+          {/* Conteúdo compacto */}
+          <div className="p-4">
+            <p className="text-sm text-gray-600 dark:text-gray-300 leading-relaxed mb-4">
               {currentStepData.description}
             </p>
 
-            {/* Indicador de progresso */}
-            <div className="flex space-x-2 mb-6">
+            {/* Indicador de progresso compacto */}
+            <div className="flex space-x-1 mb-4">
               {steps.map((_, index) => (
                 <div
                   key={index}
-                  className={`h-2 rounded-full transition-colors duration-200 ${
+                  className={`h-1.5 rounded-full transition-colors duration-200 ${
                     index <= currentStep
                       ? 'bg-violet-500'
                       : 'bg-gray-200 dark:bg-gray-600'
@@ -104,18 +152,18 @@ export function OnboardingModal({ steps, isOpen, onClose, onComplete }: Onboardi
               ))}
             </div>
 
-            {/* Botões de ação */}
+            {/* Botões de ação compactos */}
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500 dark:text-gray-400">
+              <span className="text-xs text-gray-500 dark:text-gray-400">
                 {currentStep + 1} de {steps.length}
               </span>
               
               <button
                 onClick={handleNext}
-                className="flex items-center space-x-2 bg-violet-600 hover:bg-violet-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 font-medium"
+                className="flex items-center space-x-1 bg-violet-600 hover:bg-violet-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 text-sm font-medium"
               >
                 <span>{isLastStep ? 'Entendi!' : 'Próximo'}</span>
-                {!isLastStep && <ChevronRight className="w-4 h-4" />}
+                {!isLastStep && <ChevronRight className="w-3 h-3" />}
               </button>
             </div>
           </div>

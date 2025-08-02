@@ -245,6 +245,7 @@ export default function PlaylistPage() {
             className="w-12 h-12 rounded-full flex items-center justify-center transition-all duration-200"
             style={getButtonStyles(showPlaylist, 'medium')}
             title="Ver playlist"
+            data-onboarding="playlist-button"
           >
             <List className="w-5 h-5" />
           </button>
@@ -361,6 +362,11 @@ export default function PlaylistPage() {
             title: "Controle de reprodução",
             description: "Você pode tocar a música ou pausar usando este botão",
             targetSelector: '[data-onboarding="play-button"]'
+          },
+          {
+            title: "Navegar entre músicas",
+            description: "Você pode navegar entre as músicas clicando no botão 'Ver playlist'",
+            targetSelector: '[data-onboarding="playlist-button"]'
           }
         ]}
         isOpen={isOnboardingOpen}
