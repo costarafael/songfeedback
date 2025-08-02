@@ -53,9 +53,9 @@ export default function UploadPage() {
         throw new Error('Erro ao obter URL de upload')
       }
 
-      const { uploadUrl, key } = await uploadUrlResponse.json()
+      const { uploadUrl, key, publicUrl } = await uploadUrlResponse.json()
 
-      // Upload file to S3
+      // Upload file to Supabase Storage
       const uploadResponse = await fetch(uploadUrl, {
         method: 'PUT',
         body: file,
@@ -73,7 +73,7 @@ export default function UploadPage() {
       // Create song record
       const songData = {
         title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-        file_url: `https://your-s3-bucket.s3.amazonaws.com/${key}` // Adjust this URL
+        file_url: publicUrl // Use correct Supabase public URL
       }
 
       const createSongResponse = await fetch('/api/songs', {
