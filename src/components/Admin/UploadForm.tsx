@@ -82,7 +82,6 @@ export default function UploadForm() {
         try {
           const transcriptionData = new FormData()
           transcriptionData.append('songId', result.songId)
-          transcriptionData.append('audioFile', file)
           
           const transcriptionResponse = await fetch('/api/transcribe', {
             method: 'POST',

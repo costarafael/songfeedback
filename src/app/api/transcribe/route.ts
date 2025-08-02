@@ -37,18 +37,34 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     songId = formData.get('songId') as string
-    const audioFile = formData.get('audioFile') as File
 
     // Log básico para monitoramento
     console.log(`🎵 Transcription started for song: ${songId}`)
 
-    if (!songId || !audioFile) {
-      console.error('❌ Missing required parameters')
+    if (!songId) {
+      console.error('❌ Missing songId parameter')
       return NextResponse.json(
-        { error: 'songId e audioFile são obrigatórios' },
+        { error: 'songId é obrigatório' },
         { status: 400 }
       )
     }
+
+    // Buscar informações da música no banco
+    const { data: songData, error: songError } = await supabase
+      .from('songs')
+      .select('file_url, title')
+      .eq('id', songId)
+      .single()
+
+    if (songError || !songData) {
+      console.error('❌ Song not found:', songError?.message)
+      return NextResponse.json(
+        { error: 'Música não encontrada' },
+        { status: 404 }
+      )
+    }
+
+    console.log(`🎵 Found song: ${songData.title}, URL: ${songData.file_url}`)
 
     // Atualizar status para 'processing'
     await supabase
@@ -59,10 +75,21 @@ export async function POST(request: NextRequest) {
       })
       .eq('id', songId)
 
+    // Baixar o arquivo do Supabase para enviar ao ElevenLabs
+    console.log(`📥 Downloading audio file from: ${songData.file_url}`)
+    const audioResponse = await fetch(songData.file_url)
+    
+    if (!audioResponse.ok) {
+      throw new Error(`Erro ao baixar arquivo: ${audioResponse.status}`)
+    }
+
+    const audioBlob = await audioResponse.blob()
+    console.log(`📁 Audio file downloaded, size: ${audioBlob.size} bytes`)
+
     // Preparar dados para ElevenLabs
     const elevenLabsFormData = new FormData()
     elevenLabsFormData.append('model_id', 'scribe_v1')
-    elevenLabsFormData.append('file', audioFile)
+    elevenLabsFormData.append('file', audioBlob, 'audio.mp3')
     elevenLabsFormData.append('timestamps', 'true')
     elevenLabsFormData.append('word_timestamps', 'true')
 

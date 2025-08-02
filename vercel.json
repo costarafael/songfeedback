@@ -8,6 +8,9 @@
     },
     "src/app/api/upload-url/route.ts": {
       "maxDuration": 10
+    },
+    "src/app/api/transcribe/route.ts": {
+      "maxDuration": 300
     }
   }
 }
