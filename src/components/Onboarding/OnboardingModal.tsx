@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { X, ChevronRight } from 'lucide-react'
+import { X, ChevronRight, ChevronLeft } from 'lucide-react'
 
 interface OnboardingStep {
   title: string
@@ -33,40 +33,63 @@ export function OnboardingModal({ steps, isOpen, onClose, onComplete }: Onboardi
         const viewportWidth = window.innerWidth
         const modalWidth = 320 // Estimated modal width
         const modalHeight = 200 // Estimated modal height
+        const padding = 20
         
         let top = '50%'
         let left = '50%'
         let transform = 'translate(-50%, -50%)'
         
-        // Smart positioning logic
+        // Smart positioning logic with mobile viewport constraints
         const spaceAbove = rect.top
         const spaceBelow = viewportHeight - rect.bottom
         const spaceLeft = rect.left
         const spaceRight = viewportWidth - rect.right
         
-        // Prefer positioning where there's more space
-        if (spaceBelow > modalHeight + 20 && spaceBelow > spaceAbove) {
-          // Position below
-          top = `${rect.bottom + 20}px`
-          left = `${Math.min(rect.left + rect.width / 2, viewportWidth - modalWidth / 2 - 20)}px`
-          transform = 'translateX(-50%)'
-        } else if (spaceAbove > modalHeight + 20) {
-          // Position above
-          top = `${rect.top - modalHeight - 20}px`
-          left = `${Math.min(rect.left + rect.width / 2, viewportWidth - modalWidth / 2 - 20)}px`
-          transform = 'translateX(-50%)'
-        } else if (spaceRight > modalWidth + 20) {
-          // Position to the right
-          top = `${Math.min(rect.top + rect.height / 2, viewportHeight - modalHeight / 2 - 20)}px`
-          left = `${rect.right + 20}px`
-          transform = 'translateY(-50%)'
-        } else if (spaceLeft > modalWidth + 20) {
-          // Position to the left
-          top = `${Math.min(rect.top + rect.height / 2, viewportHeight - modalHeight / 2 - 20)}px`
-          left = `${rect.left - modalWidth - 20}px`
-          transform = 'translateY(-50%)'
+        // Check if we're on mobile (narrow viewport)
+        const isMobile = viewportWidth < 640
+        
+        if (isMobile) {
+          // On mobile, prioritize vertical positioning to avoid horizontal overflow
+          if (spaceBelow > modalHeight + padding) {
+            // Position below, centered horizontally with viewport constraints
+            top = `${rect.bottom + padding}px`
+            left = '50%'
+            transform = 'translateX(-50%)'
+          } else if (spaceAbove > modalHeight + padding) {
+            // Position above, centered horizontally with viewport constraints  
+            top = `${rect.top - modalHeight - padding}px`
+            left = '50%'
+            transform = 'translateX(-50%)'
+          } else {
+            // Fall back to center with safe margins
+            top = '50%'
+            left = '50%'
+            transform = 'translate(-50%, -50%)'
+          }
+        } else {
+          // Desktop positioning logic (original)
+          if (spaceBelow > modalHeight + padding && spaceBelow > spaceAbove) {
+            // Position below
+            top = `${rect.bottom + padding}px`
+            left = `${Math.min(Math.max(rect.left + rect.width / 2, modalWidth / 2 + padding), viewportWidth - modalWidth / 2 - padding)}px`
+            transform = 'translateX(-50%)'
+          } else if (spaceAbove > modalHeight + padding) {
+            // Position above
+            top = `${rect.top - modalHeight - padding}px`
+            left = `${Math.min(Math.max(rect.left + rect.width / 2, modalWidth / 2 + padding), viewportWidth - modalWidth / 2 - padding)}px`
+            transform = 'translateX(-50%)'
+          } else if (spaceRight > modalWidth + padding) {
+            // Position to the right
+            top = `${Math.min(Math.max(rect.top + rect.height / 2, modalHeight / 2 + padding), viewportHeight - modalHeight / 2 - padding)}px`
+            left = `${rect.right + padding}px`
+            transform = 'translateY(-50%)'
+          } else if (spaceLeft > modalWidth + padding) {
+            // Position to the left
+            top = `${Math.min(Math.max(rect.top + rect.height / 2, modalHeight / 2 + padding), viewportHeight - modalHeight / 2 - padding)}px`
+            left = `${rect.left - modalWidth - padding}px`
+            transform = 'translateY(-50%)'
+          }
         }
-        // Otherwise, keep center position
         
         setModalPosition({ top, left, transform })
       }
@@ -78,6 +101,12 @@ export function OnboardingModal({ steps, isOpen, onClose, onComplete }: Onboardi
       setCurrentStep(currentStep + 1)
     } else {
       onComplete()
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
     }
   }
 
@@ -154,9 +183,20 @@ export function OnboardingModal({ steps, isOpen, onClose, onComplete }: Onboardi
 
             {/* Botões de ação compactos */}
             <div className="flex justify-between items-center">
-              <span className="text-xs text-gray-500 dark:text-gray-400">
-                {currentStep + 1} de {steps.length}
-              </span>
+              <div className="flex items-center space-x-2">
+                {currentStep > 0 && (
+                  <button
+                    onClick={handlePrevious}
+                    className="flex items-center space-x-1 border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 px-3 py-2 rounded-lg transition-colors duration-200 text-sm"
+                  >
+                    <ChevronLeft className="w-3 h-3" />
+                    <span>Voltar</span>
+                  </button>
+                )}
+                <span className="text-xs text-gray-500 dark:text-gray-400">
+                  {currentStep + 1} de {steps.length}
+                </span>
+              </div>
               
               <button
                 onClick={handleNext}
