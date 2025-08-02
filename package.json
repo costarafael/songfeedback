@@ -10,8 +10,11 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.0.0",
+    "@ant-design/nextjs-registry": "^1.1.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@supabase/supabase-js": "^2.39.7",
+    "antd": "^5.26.7",
     "framer-motion": "^12.23.12",
     "lucide-react": "^0.263.1",
     "next": "15.4.5",
