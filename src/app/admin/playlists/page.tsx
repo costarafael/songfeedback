@@ -1,0 +1,316 @@
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { Table, Button, Space, Tag, Typography, Input, Modal, Form, message, Select, Popconfirm } from 'antd'
+import { 
+  UnorderedListOutlined, 
+  DeleteOutlined, 
+  ShareAltOutlined,
+  EditOutlined,
+  PlusOutlined,
+  CopyOutlined,
+  SoundOutlined
+} from '@ant-design/icons'
+import { useRouter } from 'next/navigation'
+import AdminLayout from '@/components/Admin/AdminLayout'
+
+const { Title, Text } = Typography
+const { Search } = Input
+const { Option } = Select
+
+interface Song {
+  id: string
+  title: string
+  artist?: string
+}
+
+interface Playlist {
+  id: string
+  name: string
+  description?: string
+  share_token: string
+  created_at: string
+  songs?: Song[]
+}
+
+export default function PlaylistsPage() {
+  const [playlists, setPlaylists] = useState<Playlist[]>([])
+  const [songs, setSongs] = useState<Song[]>([])
+  const [loading, setLoading] = useState(true)
+  const [searchText, setSearchText] = useState('')
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [form] = Form.useForm()
+  const router = useRouter()
+
+  useEffect(() => {
+    fetchPlaylists()
+    fetchSongs()
+  }, [])
+
+  const fetchPlaylists = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/playlists')
+      if (response.ok) {
+        const data = await response.json()
+        setPlaylists(data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar playlists:', error)
+      message.error('Erro ao carregar playlists')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const fetchSongs = async () => {
+    try {
+      const response = await fetch('/api/songs')
+      if (response.ok) {
+        const data = await response.json()
+        setSongs(data)
+      }
+    } catch (error) {
+      console.error('Erro ao carregar músicas:', error)
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await fetch(`/api/playlists/${id}`, {
+        method: 'DELETE'
+      })
+      
+      if (response.ok) {
+        message.success('Playlist excluída com sucesso')
+        fetchPlaylists()
+      } else {
+        message.error('Erro ao excluir playlist')
+      }
+    } catch (error) {
+      message.error('Erro ao excluir playlist')
+    }
+  }
+
+  const handleEdit = (record: Playlist) => {
+    setEditingId(record.id)
+    setIsModalVisible(true)
+    form.setFieldsValue({
+      name: record.name,
+      description: record.description || '',
+      songIds: record.songs?.map(song => song.id) || []
+    })
+  }
+
+  const handleCreate = () => {
+    setEditingId(null)
+    setIsModalVisible(true)
+    form.resetFields()
+  }
+
+  const handleSave = async () => {
+    try {
+      const values = await form.validateFields()
+      const url = editingId ? `/api/playlists/${editingId}` : '/api/playlists'
+      const method = editingId ? 'PUT' : 'POST'
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      })
+
+      if (response.ok) {
+        message.success(`Playlist ${editingId ? 'atualizada' : 'criada'} com sucesso`)
+        setIsModalVisible(false)
+        setEditingId(null)
+        fetchPlaylists()
+      } else {
+        message.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist`)
+      }
+    } catch (error) {
+      message.error(`Erro ao ${editingId ? 'atualizar' : 'criar'} playlist`)
+    }
+  }
+
+  const copyShareLink = (shareToken: string) => {
+    const shareUrl = `${window.location.origin}/playlist/${shareToken}`
+    navigator.clipboard.writeText(shareUrl)
+    message.success('Link copiado para a área de transferência!')
+  }
+
+  const filteredPlaylists = playlists.filter(playlist =>
+    playlist.name.toLowerCase().includes(searchText.toLowerCase()) ||
+    (playlist.description && playlist.description.toLowerCase().includes(searchText.toLowerCase()))
+  )
+
+  const columns = [
+    {
+      title: 'Playlist',
+      dataIndex: 'name',
+      key: 'name',
+      render: (text: string, record: Playlist) => (
+        <Space direction="vertical" size="small">
+          <Text strong>{text}</Text>
+          {record.description && <Text type="secondary">{record.description}</Text>}
+          <Space>
+            <Tag icon={<SoundOutlined />} color="blue">
+              {record.songs?.length || 0} música(s)
+            </Tag>
+          </Space>
+        </Space>
+      ),
+    },
+    {
+      title: 'Criado em',
+      dataIndex: 'created_at',
+      key: 'created_at',
+      render: (date: string) => new Date(date).toLocaleDateString('pt-BR'),
+      width: 120,
+    },
+    {
+      title: 'Ações',
+      key: 'actions',
+      width: 250,
+      render: (_: any, record: Playlist) => (
+        <Space>
+          <Button
+            type="text"
+            icon={<EditOutlined />}
+            onClick={() => handleEdit(record)}
+            size="small"
+          >
+            Editar
+          </Button>
+          <Button
+            type="text"
+            icon={<CopyOutlined />}
+            onClick={() => copyShareLink(record.share_token)}
+            size="small"
+          >
+            Copiar Link
+          </Button>
+          <Button
+            type="text"
+            icon={<ShareAltOutlined />}
+            onClick={() => window.open(`/playlist/${record.share_token}`, '_blank')}
+            size="small"
+          >
+            Visualizar
+          </Button>
+          <Popconfirm
+            title="Excluir playlist"
+            description="Tem certeza que deseja excluir esta playlist?"
+            onConfirm={() => handleDelete(record.id)}
+            okText="Sim"
+            cancelText="Não"
+          >
+            <Button
+              type="text"
+              danger
+              icon={<DeleteOutlined />}
+              size="small"
+            >
+              Excluir
+            </Button>
+          </Popconfirm>
+        </Space>
+      ),
+    },
+  ]
+
+  return (
+    <AdminLayout 
+      title="Gestão de Playlists"
+      breadcrumbs={[{ title: 'Playlists' }]}
+    >
+      <div style={{ marginBottom: 16 }}>
+        <Space>
+          <Search
+            placeholder="Buscar por nome ou descrição..."
+            allowClear
+            style={{ width: 300 }}
+            onSearch={setSearchText}
+            onChange={(e) => setSearchText(e.target.value)}
+          />
+          <Button 
+            type="primary" 
+            icon={<PlusOutlined />}
+            onClick={handleCreate}
+          >
+            Nova Playlist
+          </Button>
+        </Space>
+      </div>
+
+      <Table
+        dataSource={filteredPlaylists}
+        columns={columns}
+        rowKey="id"
+        loading={loading}
+        pagination={{
+          pageSize: 20,
+          showSizeChanger: true,
+          showQuickJumper: true,
+          showTotal: (total, range) => 
+            `${range[0]}-${range[1]} de ${total} playlists`,
+        }}
+      />
+
+      <Modal
+        title={editingId ? "Editar Playlist" : "Nova Playlist"}
+        open={isModalVisible}
+        onOk={handleSave}
+        onCancel={() => setIsModalVisible(false)}
+        okText="Salvar"
+        cancelText="Cancelar"
+        width={600}
+      >
+        <Form form={form} layout="vertical">
+          <Form.Item
+            label="Nome da Playlist"
+            name="name"
+            rules={[{ required: true, message: 'Nome é obrigatório' }]}
+          >
+            <Input />
+          </Form.Item>
+          <Form.Item
+            label="Descrição"
+            name="description"
+          >
+            <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item
+            label="Músicas"
+            name="songIds"
+            help="Selecione as músicas que farão parte desta playlist"
+          >
+            <Select
+              mode="multiple"
+              placeholder="Selecione as músicas"
+              style={{ width: '100%' }}
+              showSearch
+              filterOption={(input, option) =>
+                (option?.label?.toString() || '').toLowerCase().includes(input.toLowerCase())
+              }
+            >
+              {songs.map(song => (
+                <Option 
+                  key={song.id} 
+                  value={song.id}
+                  label={`${song.title} ${song.artist ? `- ${song.artist}` : ''}`}
+                >
+                  <Space>
+                    <Text>{song.title}</Text>
+                    {song.artist && <Text type="secondary">- {song.artist}</Text>}
+                  </Space>
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        </Form>
+      </Modal>
+    </AdminLayout>
+  )
+}

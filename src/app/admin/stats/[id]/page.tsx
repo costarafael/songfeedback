@@ -1,101 +1,48 @@
-import { supabase } from '@/lib/supabase'
-import { Song, Reaction, ReactionStats } from '@/lib/types'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
+'use client'
+
+import React, { useState, useEffect } from 'react'
+import { Card, Row, Col, Statistic, Typography, Space, Tag, Progress, Timeline } from 'antd'
+import { 
+  SoundOutlined, 
+  EyeOutlined,
+  HeartOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  ExclamationCircleOutlined
+} from '@ant-design/icons'
+import AdminLayout from '@/components/Admin/AdminLayout'
 import StatsCharts from '@/components/Admin/StatsCharts'
 import ListeningHeatmap from '@/components/Admin/ListeningHeatmap'
 import SkippedSegments from '@/components/Admin/SkippedSegments'
+import { Reaction, Song, ReactionStats } from '@/lib/types'
 
-async function getSongWithStats(songId: string) {
-  // Get song data
-  const { data: song, error: songError } = await supabase
-    .from('songs')
-    .select('*')
-    .eq('id', songId)
-    .single()
+const { Title, Text } = Typography
 
-  if (songError) {
-    return null
-  }
+interface AnalyticsData {
+  totalSessions: number
+  avgCompletionRate: number
+  totalSkips: number
+  heatmap: any[]
+  mostSkippedSegments: any[]
+  reactions?: Reaction[]
+}
 
-  // Get reactions
-  const { data: reactions, error: reactionsError } = await supabase
-    .from('reactions')
-    .select('*')
-    .eq('song_id', songId)
-    .order('timestamp')
-
-  if (reactionsError) {
-    console.error('Error fetching reactions:', reactionsError)
-  }
-
-  // Get listening sessions count
-  const { count: sessionCount } = await supabase
-    .from('listening_sessions')
-    .select('*', { count: 'exact', head: true })
-    .eq('song_id', songId)
-
-  // Get listening analytics directly from database
-  let listeningAnalytics = null
+async function fetchSongAnalytics(songId: string) {
   try {
-    // Buscar estatísticas das sessões
-    const { data: sessionStats, error: sessionError } = await supabase
-      .from('listening_sessions')
-      .select('total_listened_time, completion_percentage, skip_count')
-      .eq('song_id', songId)
-
-    // Buscar segmentos para heatmap
-    const { data: segments, error: segmentsError } = await supabase
-      .from('listening_segments')
-      .select('start_time, end_time, is_sequential')
-      .eq('song_id', songId)
-      .order('start_time')
-
-    if (!sessionError && !segmentsError && sessionStats && segments) {
-      const totalSessions = sessionStats.length
-      const avgCompletionRate = totalSessions > 0 
-        ? sessionStats.reduce((sum, s) => sum + (s.completion_percentage || 0), 0) / totalSessions 
-        : 0
-      const totalSkips = sessionStats.reduce((sum, s) => sum + (s.skip_count || 0), 0) || 0
-
-      // Debug logging
-      console.log('Debug - Analytics Data:', {
-        songDuration: song.duration,
-        totalSessions,
-        segmentsCount: segments.length,
-        firstSegment: segments[0],
-        lastSegment: segments[segments.length - 1]
-      })
-
-      // Gerar heatmap
-      const heatmap = generateHeatmap(segments, song.duration || 0, 100)
-      const mostSkippedSegments = findMostSkippedSegments(segments, song.duration || 0)
-
-      console.log('Debug - Generated Heatmap:', {
-        heatmapLength: heatmap.length,
-        duration: song.duration,
-        firstPoint: heatmap[0],
-        lastPoint: heatmap[heatmap.length - 1]
-      })
-
-      listeningAnalytics = {
-        totalSessions,
-        avgCompletionRate: Math.round(avgCompletionRate * 100) / 100,
-        totalSkips,
-        heatmap,
-        mostSkippedSegments
-      }
+    const response = await fetch(`/api/songs/${songId}/analytics`)
+    if (response.ok) {
+      return await response.json()
     }
   } catch (error) {
-    console.error('Error fetching listening analytics:', error)
+    console.error('Error fetching analytics:', error)
   }
+  return null
+}
 
-  return {
-    song: song as Song,
-    reactions: reactions as Reaction[] || [],
-    sessionCount: sessionCount || 0,
-    listeningAnalytics
-  }
+function formatTime(time: number): string {
+  const minutes = Math.floor(time / 60)
+  const seconds = Math.floor(time % 60)
+  return `${minutes}:${seconds.toString().padStart(2, '0')}`
 }
 
 function processReactionStats(reactions: Reaction[]): ReactionStats[] {
@@ -118,97 +65,69 @@ function processReactionStats(reactions: Reaction[]): ReactionStats[] {
   return Array.from(statsMap.values())
 }
 
-function formatTime(time: number): string {
-  const minutes = Math.floor(time / 60)
-  const seconds = Math.floor(time % 60)
-  return `${minutes}:${seconds.toString().padStart(2, '0')}`
-}
+export default function SongStatsPage({ params }: { params: Promise<{ id: string }> }) {
+  const [song, setSong] = useState<Song | null>(null)
+  const [reactions, setReactions] = useState<Reaction[]>([])
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
+  const [loading, setLoading] = useState(true)
 
-function generateHeatmap(segments: any[], duration: number, resolution: number = 100) {
-  if (duration <= 0) return []
-
-  const bucketSize = duration / resolution
-  const buckets = Array(resolution).fill(0)
-
-  // Calcular tempo real ouvido em cada bucket (evita contagem duplicada)
-  segments.forEach(segment => {
-    const segmentDuration = segment.end_time - segment.start_time
-    if (segmentDuration <= 0) return
-
-    const startBucket = Math.floor(segment.start_time / bucketSize)
-    const endBucket = Math.min(resolution - 1, Math.floor(segment.end_time / bucketSize))
-    
-    for (let i = startBucket; i <= endBucket; i++) {
-      const bucketStart = i * bucketSize
-      const bucketEnd = (i + 1) * bucketSize
+  useEffect(() => {
+    async function loadData() {
+      const { id } = await params
       
-      // Calcular intersecção real entre segmento e bucket
-      const intersectionStart = Math.max(segment.start_time, bucketStart)
-      const intersectionEnd = Math.min(segment.end_time, bucketEnd)
-      const intersectionDuration = Math.max(0, intersectionEnd - intersectionStart)
-      
-      // Adicionar tempo real ouvido (não apenas contagem)
-      buckets[i] += intersectionDuration
-    }
-  })
+      try {
+        setLoading(true)
+        
+        // Fetch song data
+        const songResponse = await fetch(`/api/songs`)
+        if (songResponse.ok) {
+          const songs = await songResponse.json()
+          const foundSong = songs.find((s: Song) => s.id === id)
+          if (foundSong) {
+            setSong(foundSong)
+          }
+        }
 
-  // Encontrar máximo tempo ouvido em um bucket para normalização
-  const maxTimeInBucket = Math.max(...buckets, bucketSize)
-  
-  return buckets.map((timeListened, index) => ({
-    time: index * bucketSize,
-    intensity: Math.min(1, timeListened / bucketSize), // Intensidade: 0-1 (proporção do bucket ouvida)
-    listenCount: Math.round(timeListened) // Tempo em segundos ouvido neste bucket
-  }))
-}
+        // Fetch analytics
+        const analyticsData = await fetchSongAnalytics(id)
+        if (analyticsData) {
+          setAnalytics(analyticsData)
+          setReactions(analyticsData.reactions || [])
+        }
 
-function findMostSkippedSegments(segments: any[], duration: number) {
-  if (duration <= 0) return []
-
-  // Dividir em segmentos de 30 segundos para análise
-  const segmentSize = 30
-  const numSegments = Math.ceil(duration / segmentSize)
-  const segmentData = Array(numSegments).fill(0).map((_, index) => ({
-    startTime: index * segmentSize,
-    endTime: Math.min((index + 1) * segmentSize, duration),
-    skipCount: 0,
-    listenCount: 0
-  }))
-
-  // Analisar segmentos de escuta
-  segments.forEach(segment => {
-    const startSegmentIndex = Math.floor(segment.start_time / segmentSize)
-    const endSegmentIndex = Math.min(numSegments - 1, Math.floor(segment.end_time / segmentSize))
-    
-    for (let i = startSegmentIndex; i <= endSegmentIndex; i++) {
-      if (segment.is_sequential) {
-        segmentData[i].listenCount++
-      } else {
-        segmentData[i].skipCount++
+      } catch (error) {
+        console.error('Error loading song data:', error)
+      } finally {
+        setLoading(false)
       }
     }
-  })
 
-  // Retornar os 5 segmentos mais pulados
-  return segmentData
-    .sort((a, b) => b.skipCount - a.skipCount)
-    .slice(0, 5)
-    .filter(seg => seg.skipCount > 0)
-}
+    loadData()
+  }, [params])
 
-export default async function StatsPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params
-  const data = await getSongWithStats(id)
-  
-  if (!data) {
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl">Música não encontrada</div>
-      </div>
+      <AdminLayout title="Carregando..." breadcrumbs={[{ title: 'Estatísticas' }, { title: 'Carregando...' }]}>
+        <div style={{ textAlign: 'center', padding: '50px' }}>
+          <Progress type="circle" />
+        </div>
+      </AdminLayout>
     )
   }
 
-  const { song, reactions, sessionCount, listeningAnalytics } = data
+  if (!song) {
+    return (
+      <AdminLayout title="Música não encontrada" breadcrumbs={[{ title: 'Estatísticas' }, { title: 'Erro' }]}>
+        <Card>
+          <div style={{ textAlign: 'center', padding: '50px' }}>
+            <ExclamationCircleOutlined style={{ fontSize: 48, color: '#ff4d4f' }} />
+            <Title level={3}>Música não encontrada</Title>
+          </div>
+        </Card>
+      </AdminLayout>
+    )
+  }
+
   const reactionStats = processReactionStats(reactions)
   const totalReactions = reactions.length
 
@@ -219,157 +138,187 @@ export default async function StatsPage({ params }: { params: Promise<{ id: stri
     angry: '😠'
   }
 
-  const reactionColors = {
-    love: 'text-green-600',
-    like: 'text-blue-600', 
-    dislike: 'text-yellow-600',
-    angry: 'text-gray-600'
+  const reactionLabels = {
+    love: 'Amei',
+    like: 'Gostei',
+    dislike: 'Não gostei',
+    angry: 'Descontente'
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
-        <Link
-          href="/admin"
-          className="flex items-center space-x-2 text-blue-600 hover:text-blue-800 mb-8"
-        >
-          <ArrowLeft className="w-5 h-5" />
-          <span>Voltar ao Admin</span>
-        </Link>
-
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold mb-2">Estatísticas: {song.title}</h1>
+    <AdminLayout 
+      title={`Estatísticas: ${song.title}`}
+      breadcrumbs={[
+        { title: 'Estatísticas', href: '/admin/stats' }, 
+        { title: song.title }
+      ]}
+    >
+      <Space direction="vertical" size="large" style={{ width: '100%' }}>
+        {/* Song Info */}
+        <Card>
+          <Space direction="vertical" size="small">
+            <Title level={2} style={{ margin: 0 }}>
+              <SoundOutlined /> {song.title}
+            </Title>
             {song.artist && (
-              <p className="text-xl text-gray-600">por {song.artist}</p>
+              <Text type="secondary" style={{ fontSize: 16 }}>
+                por {song.artist}
+              </Text>
             )}
-          </div>
+            {song.duration && (
+              <Tag icon={<ClockCircleOutlined />} color="blue">
+                Duração: {formatTime(song.duration)}
+              </Tag>
+            )}
+          </Space>
+        </Card>
 
-          {/* Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-6 gap-6 mb-8">
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Reproduções</h3>
-              <p className="text-3xl font-bold text-blue-600">{song.listen_count}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Sessões</h3>
-              <p className="text-3xl font-bold text-green-600">{sessionCount}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Total Reações</h3>
-              <p className="text-3xl font-bold text-purple-600">{totalReactions}</p>
-            </div>
-            
-            <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-              <h3 className="text-lg font-semibold text-gray-700">Duração</h3>
-              <p className="text-3xl font-bold text-gray-600">
-                {song.duration ? formatTime(song.duration) : 'N/A'}
-              </p>
-            </div>
+        {/* Summary Stats */}
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Reproduções"
+                value={song.listen_count || 0}
+                prefix={<EyeOutlined />}
+                valueStyle={{ color: '#1890ff' }}
+              />
+            </Card>
+          </Col>
+          <Col xs={24} sm={12} md={6}>
+            <Card>
+              <Statistic
+                title="Total de Reações"
+                value={totalReactions}
+                prefix={<HeartOutlined />}
+                valueStyle={{ color: '#722ed1' }}
+              />
+            </Card>
+          </Col>
+          {analytics && (
+            <>
+              <Col xs={24} sm={12} md={6}>
+                <Card>
+                  <Statistic
+                    title="Sessões de Escuta"
+                    value={analytics.totalSessions}
+                    prefix={<CheckCircleOutlined />}
+                    valueStyle={{ color: '#52c41a' }}
+                  />
+                </Card>
+              </Col>
+              <Col xs={24} sm={12} md={6}>
+                <Card>
+                  <Statistic
+                    title="Taxa de Conclusão"
+                    value={analytics.avgCompletionRate}
+                    suffix="%"
+                    prefix={<CheckCircleOutlined />}
+                    valueStyle={{ color: '#13c2c2' }}
+                  />
+                </Card>
+              </Col>
+            </>
+          )}
+        </Row>
 
-            {listeningAnalytics && (
-              <>
-                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                  <h3 className="text-lg font-semibold text-gray-700">Taxa Conclusão</h3>
-                  <p className="text-3xl font-bold text-indigo-600">{listeningAnalytics.avgCompletionRate}%</p>
-                </div>
+        {/* Reaction Breakdown */}
+        {reactionStats.length > 0 && (
+          <Card>
+            <Title level={4}>Distribuição de Reações</Title>
+            <Row gutter={[16, 16]}>
+              {reactionStats.map((stat) => {
+                const percentage = totalReactions > 0 ? (stat.count / totalReactions * 100).toFixed(1) : '0'
                 
-                <div className="bg-white rounded-lg shadow-lg p-6 text-center">
-                  <h3 className="text-lg font-semibold text-gray-700">Pulos</h3>
-                  <p className="text-3xl font-bold text-red-600">{listeningAnalytics.totalSkips}</p>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* Reaction Breakdown */}
-          <div className="bg-white rounded-lg shadow-lg p-6 mb-8">
-            <h2 className="text-2xl font-semibold mb-6">Distribuição de Reações</h2>
-            
-            {reactionStats.length === 0 ? (
-              <p className="text-gray-600 text-center py-8">Nenhuma reação registrada ainda</p>
-            ) : (
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {reactionStats.map((stat) => {
-                  const percentage = totalReactions > 0 ? (stat.count / totalReactions * 100).toFixed(1) : '0'
-                  
-                  return (
-                    <div key={stat.reaction_type} className="text-center p-4 border rounded-lg">
-                      <div className="text-4xl mb-2">
-                        {reactionEmojis[stat.reaction_type]}
+                return (
+                  <Col xs={12} sm={6} key={stat.reaction_type}>
+                    <Card size="small" style={{ textAlign: 'center' }}>
+                      <div style={{ fontSize: 32, marginBottom: 8 }}>
+                        {reactionEmojis[stat.reaction_type as keyof typeof reactionEmojis]}
                       </div>
-                      <div className={`text-2xl font-bold ${reactionColors[stat.reaction_type]}`}>{stat.count}</div>
-                      <div className="text-sm text-gray-600">{percentage}%</div>
-                      <div className="text-xs text-gray-500 capitalize">
-                        {stat.reaction_type === 'love' ? 'Amei' :
-                         stat.reaction_type === 'like' ? 'Gostei' :
-                         stat.reaction_type === 'dislike' ? 'Não gostei' : 'Descontente'}
-                      </div>
-                    </div>
-                  )
-                })}
-              </div>
-            )}
-          </div>
+                      <Statistic
+                        title={reactionLabels[stat.reaction_type as keyof typeof reactionLabels]}
+                        value={stat.count}
+                        suffix={<span style={{ fontSize: 12 }}>({percentage}%)</span>}
+                      />
+                    </Card>
+                  </Col>
+                )
+              })}
+            </Row>
+          </Card>
+        )}
 
-          {/* Listening Analytics */}
-          {listeningAnalytics && listeningAnalytics.heatmap && (
-            <div className="mb-8">
-              <ListeningHeatmap 
-                heatmap={listeningAnalytics.heatmap}
-                duration={song.duration || 0}
-              />
-            </div>
-          )}
+        {/* Listening Heatmap */}
+        {analytics && analytics.heatmap && (
+          <Card>
+            <Title level={4}>Mapa de Escuta</Title>
+            <ListeningHeatmap 
+              heatmap={analytics.heatmap}
+              duration={song.duration || 0}
+            />
+          </Card>
+        )}
 
-          {/* Skipped Segments */}
-          {listeningAnalytics && listeningAnalytics.mostSkippedSegments && (
-            <div className="mb-8">
-              <SkippedSegments 
-                segments={listeningAnalytics.mostSkippedSegments}
-              />
-            </div>
-          )}
+        {/* Skipped Segments */}
+        {analytics && analytics.mostSkippedSegments && analytics.mostSkippedSegments.length > 0 && (
+          <Card>
+            <Title level={4}>Segmentos Mais Pulados</Title>
+            <SkippedSegments 
+              segments={analytics.mostSkippedSegments}
+            />
+          </Card>
+        )}
 
-          {/* Timeline Visualization */}
-          {reactions.length > 0 && (
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <h2 className="text-2xl font-semibold mb-6">Timeline de Reações</h2>
-              <StatsCharts 
-                reactions={reactions} 
-                duration={song.duration || 0}
-                reactionStats={reactionStats}
-              />
-            </div>
-          )}
+        {/* Timeline Visualization */}
+        {reactions.length > 0 && (
+          <Card>
+            <Title level={4}>Timeline de Reações</Title>
+            <StatsCharts 
+              reactions={reactions} 
+              duration={song.duration || 0}
+              reactionStats={reactionStats}
+            />
+          </Card>
+        )}
 
-          {/* Recent Reactions */}
-          {reactions.length > 0 && (
-            <div className="bg-white rounded-lg shadow-lg p-6 mt-8">
-              <h2 className="text-2xl font-semibold mb-6">Reações Recentes</h2>
-              <div className="space-y-2">
-                {reactions.slice(-10).reverse().map((reaction, index) => (
-                  <div key={reaction.id} className="flex items-center justify-between py-2 border-b border-gray-100">
-                    <div className="flex items-center space-x-3">
-                      <span className="text-xl">{reactionEmojis[reaction.reaction_type]}</span>
-                      <span className="capitalize">
-                        {reaction.reaction_type === 'love' ? 'Amei' :
-                         reaction.reaction_type === 'like' ? 'Gostei' :
-                         reaction.reaction_type === 'dislike' ? 'Não gostei' : 'Descontente'}
-                      </span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      {formatTime(reaction.timestamp)}
-                    </div>
-                  </div>
-                ))}
-              </div>
+        {/* Recent Reactions */}
+        {reactions.length > 0 && (
+          <Card>
+            <Title level={4}>Reações Recentes</Title>
+            <Timeline>
+              {reactions.slice(-10).reverse().map((reaction) => (
+                <Timeline.Item 
+                  key={reaction.id}
+                  dot={<span style={{ fontSize: 16 }}>{reactionEmojis[reaction.reaction_type]}</span>}
+                >
+                  <Space>
+                    <Text strong>
+                      {reactionLabels[reaction.reaction_type]}
+                    </Text>
+                    <Text type="secondary">
+                      em {formatTime(reaction.timestamp)}
+                    </Text>
+                  </Space>
+                </Timeline.Item>
+              ))}
+            </Timeline>
+          </Card>
+        )}
+
+        {/* No Data Message */}
+        {totalReactions === 0 && (!analytics || analytics.totalSessions === 0) && (
+          <Card>
+            <div style={{ textAlign: 'center', padding: '50px' }}>
+              <ExclamationCircleOutlined style={{ fontSize: 48, color: '#faad14' }} />
+              <Title level={3}>Nenhum dado disponível</Title>
+              <Text type="secondary">
+                Esta música ainda não recebeu reações ou reproduções.
+              </Text>
             </div>
-          )}
-        </div>
-      </div>
-    </div>
+          </Card>
+        )}
+      </Space>
+    </AdminLayout>
   )
 }
