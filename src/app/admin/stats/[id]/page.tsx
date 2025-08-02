@@ -82,20 +82,18 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
         setLoading(true)
         
         // Fetch song data
-        const songResponse = await fetch(`/api/songs`)
+        const songResponse = await fetch(`/api/songs/${id}`)
         if (songResponse.ok) {
-          const songs = await songResponse.json()
-          // Garantir que songs seja um array antes de usar find
-          const songsArray = Array.isArray(songs) ? songs : []
-          const foundSong = songsArray.find((s: Song) => s.id === id)
-          if (foundSong) {
-            setSong(foundSong)
-          } else {
-            console.error('Música não encontrada:', id)
-          }
+          const song = await songResponse.json()
+          setSong(song)
         } else {
           const errorText = await songResponse.text()
           console.error('Erro ao carregar dados da música:', songResponse.status, errorText)
+          if (songResponse.status === 404) {
+            message.error('Música não encontrada')
+          } else {
+            message.error(`Erro ao carregar música: ${songResponse.status}`)
+          }
         }
 
         // Fetch analytics

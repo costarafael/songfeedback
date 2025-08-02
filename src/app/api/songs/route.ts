@@ -21,7 +21,7 @@ export async function GET() {
       )
     }
 
-    return NextResponse.json({ songs })
+    return NextResponse.json(songs)
 
   } catch (error) {
     console.error('API error:', error)

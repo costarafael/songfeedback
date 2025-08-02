@@ -18,9 +18,16 @@ function generateShareToken(): string {
 
 export async function GET() {
   try {
+    // Fetch playlists with their associated songs
     const { data: playlists, error } = await supabaseAdmin
       .from('playlists')
-      .select('*')
+      .select(`
+        *,
+        songs:playlist_songs(
+          position,
+          song:songs(*)
+        )
+      `)
       .order('created_at', { ascending: false })
 
     if (error) {
@@ -31,7 +38,16 @@ export async function GET() {
       )
     }
 
-    return NextResponse.json({ playlists })
+    // Transform the data to match expected format
+    const transformedPlaylists = playlists?.map(playlist => ({
+      ...playlist,
+      songs: playlist.songs?.map((ps: any) => ps.song).sort((a: any, b: any) => 
+        playlist.songs.find((ps: any) => ps.song.id === a.id)?.position - 
+        playlist.songs.find((ps: any) => ps.song.id === b.id)?.position
+      ) || []
+    })) || []
+
+    return NextResponse.json(transformedPlaylists)
 
   } catch (error) {
     console.error('API error:', error)
