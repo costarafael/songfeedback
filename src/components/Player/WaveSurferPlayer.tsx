@@ -77,6 +77,7 @@ export default function WaveSurferPlayer({
           disabled={isLoading || !!error}
           className="w-14 h-14 rounded-full flex items-center justify-center flex-shrink-0 disabled:opacity-50"
           style={getButtonStyles(false, 'medium')}
+          data-onboarding="play-button"
         >
           {isPlaying ? (
             <Pause className="w-6 h-6" />

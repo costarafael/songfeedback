@@ -10,6 +10,8 @@ import ReactionButtons from '@/components/ReactButtons/ReactionButtons'
 import FixedThemePlayerWrapper from '@/components/FixedThemePlayerWrapper'
 import { useListeningTracker } from '@/hooks/useListeningTrackerSimple'
 import { useNeumorphicStyles } from '@/hooks/useNeumorphicStyles'
+import { OnboardingModal } from '@/components/Onboarding/OnboardingModal'
+import { useOnboarding } from '@/hooks/useOnboarding'
 
 export default function PlayerPage() {
   const params = useParams()
@@ -25,6 +27,9 @@ export default function PlayerPage() {
   const [loading, setLoading] = useState(true)
   const [showLyrics, setShowLyrics] = useState(false)
   const [isPlaying, setIsPlaying] = useState(false)
+  
+  // Onboarding
+  const { isOnboardingOpen, completeOnboarding, closeOnboarding } = useOnboarding()
   
   // Tracking de partes ouvidas
   const listeningTracker = useListeningTracker({
@@ -215,7 +220,9 @@ export default function PlayerPage() {
 
           {/* Reactions Section */}
           <div className="flex flex-col items-center space-y-6">
-            <ReactionButtons onReaction={handleReaction} />
+            <div data-onboarding="reactions">
+              <ReactionButtons onReaction={handleReaction} />
+            </div>
             
             <div className="text-center text-sm max-w-md" style={getTextStyles('secondary')}>
               <p>Registre o que sente ao longo da música</p>
@@ -223,6 +230,25 @@ export default function PlayerPage() {
           </div>
         </div>
       </div>
+
+      {/* Onboarding Modal */}
+      <OnboardingModal
+        steps={[
+          {
+            title: "Reações durante a música",
+            description: "Durante a música clique nas reações que desejar para indicar as partes que tenha ou não gostado",
+            targetSelector: '[data-onboarding="reactions"]'
+          },
+          {
+            title: "Controle de reprodução",
+            description: "Você pode tocar a música ou pausar usando este botão",
+            targetSelector: '[data-onboarding="play-button"]'
+          }
+        ]}
+        isOpen={isOnboardingOpen}
+        onClose={closeOnboarding}
+        onComplete={completeOnboarding}
+      />
     </FixedThemePlayerWrapper>
   )
 }
