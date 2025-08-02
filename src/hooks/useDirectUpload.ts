@@ -1,10 +1,4 @@
 import { useState } from 'react'
-import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://sosmwuvshpxyhylzsiis.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNvc213dXZzaHB4eWh5bHpzaWlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Mjk4MjQzOTksImV4cCI6MjA0NTQwMDM5OX0.eHzrP7c3uLqnEoaJq1vH-P0Zjs4I0LCjKz7pYqzNzC8'
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 export function useDirectUpload() {
   const [uploading, setUploading] = useState(false)
@@ -24,36 +18,50 @@ export function useDirectUpload() {
       const fileExt = file.name.split('.').pop()
       const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`
 
-      console.log('Starting direct upload to Supabase...', {
+      console.log('Starting signed URL upload...', {
         fileName,
         fileSize: file.size,
         fileType: file.type
       })
 
-      // Upload directly to Supabase Storage
-      setUploadProgress(50) // Show some progress
-      const { data: fileData, error: uploadError } = await supabase.storage
-        .from('songs')
-        .upload(fileName, file, {
-          cacheControl: '3600',
-          upsert: false
+      // Get signed upload URL
+      setUploadProgress(10)
+      const urlResponse = await fetch('/api/upload-url', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          fileName,
+          fileType: file.type
         })
-      
-      setUploadProgress(100) // Complete progress
+      })
 
-      if (uploadError) {
-        console.error('Storage upload error:', uploadError)
-        throw new Error('Erro no upload: ' + uploadError.message)
+      if (!urlResponse.ok) {
+        const urlError = await urlResponse.json()
+        throw new Error('Erro ao obter URL de upload: ' + urlError.error)
       }
 
-      console.log('File uploaded successfully:', fileData)
+      const { uploadUrl, publicUrl } = await urlResponse.json()
+      console.log('Signed URL obtained:', uploadUrl)
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('songs')
-        .getPublicUrl(fileName)
+      // Upload file using signed URL
+      setUploadProgress(50)
+      const uploadResponse = await fetch(uploadUrl, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+          'Cache-Control': '3600'
+        }
+      })
 
-      console.log('Public URL:', publicUrl)
+      if (!uploadResponse.ok) {
+        throw new Error(`Erro no upload: ${uploadResponse.status} ${uploadResponse.statusText}`)
+      }
+
+      setUploadProgress(80)
+      console.log('File uploaded successfully to:', publicUrl)
 
       // Register in database via API
       const response = await fetch('/api/upload-direct', {
