@@ -359,14 +359,14 @@ export default function PlaylistPage() {
             targetSelector: '[data-onboarding="reactions"]'
           },
           {
-            title: "Controle de reprodução",
-            description: "Você pode tocar a música ou pausar usando este botão",
-            targetSelector: '[data-onboarding="play-button"]'
-          },
-          {
             title: "Navegar entre músicas",
             description: "Você pode navegar entre as músicas clicando no botão 'Ver playlist'",
             targetSelector: '[data-onboarding="playlist-button"]'
+          },
+          {
+            title: "Controle de reprodução",
+            description: "Você pode tocar a música ou pausar usando este botão",
+            targetSelector: '[data-onboarding="play-button"]'
           }
         ]}
         isOpen={isOnboardingOpen}
