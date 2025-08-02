@@ -282,11 +282,15 @@ export default function PlaylistsPage() {
     setEditingId(null)
     setIsModalVisible(true)
     form.resetFields()
+    // Initialize songIds as empty array for new playlists
+    form.setFieldsValue({ songIds: [] })
   }
 
   const handleSave = async () => {
     try {
       const values = await form.validateFields()
+      console.log('Form values to save:', values) // Debug log
+      
       const url = editingId ? `/api/playlists/${editingId}` : '/api/playlists'
       const method = editingId ? 'PUT' : 'POST'
 
@@ -458,6 +462,12 @@ export default function PlaylistsPage() {
             name="description"
           >
             <Input.TextArea rows={3} />
+          </Form.Item>
+          <Form.Item
+            name="songIds"
+            style={{ display: 'none' }}
+          >
+            <Input type="hidden" />
           </Form.Item>
           <PlaylistSongManager
             songs={songs}

@@ -43,7 +43,10 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const { name, description, songIds } = await request.json()
+    const body = await request.json()
+    const { name, description, songIds } = body
+    
+    console.log('Updating playlist with data:', { id, name, description, songIds }) // Debug log
 
     if (!name?.trim()) {
       return NextResponse.json(
