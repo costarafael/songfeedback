@@ -121,7 +121,6 @@ src/
 │   ├── ReactButtons/
 │   │   └── ReactionButtons.tsx    # Botões de emoji
 │   ├── Admin/
-│   │   ├── UploadForm.tsx         # Formulário upload
 │   │   └── StatsCharts.tsx        # Gráficos estatísticas
 │   └── ThemeToggle.tsx            # Toggle tema
 ├── lib/
@@ -178,7 +177,7 @@ src/
 ### Upload & Utils
 - `POST /api/upload-url` - Gerar URL assinada para upload no Supabase Storage
 - `POST /api/update-duration` - Atualizar duração da música
-- `POST /api/transcribe` - Transcrição usando ElevenLabs API
+- `POST /api/transcribe` - Transcrição automática com ElevenLabs (modelo scribe_v1)
 - `POST /api/setup` - Configuração inicial do banco
 
 ## Configuração ElevenLabs
@@ -196,10 +195,12 @@ src/
 ## Estado Atual (Agosto 2025)
 ### ✅ Funcionalidades Implementadas
 - **Sistema de Upload**: Funcionando com Supabase Storage
+- **Transcrição Automática**: Integração com ElevenLabs API (opcional no upload)
 - **Gestão de Playlists**: Interface completa com ordenação visual
 - **Compartilhamento Público**: Links de playlist funcionais
 - **Analytics Completas**: Heatmap, segmentos pulados, timeline
 - **Interface Admin**: Dashboard profissional com Ant Design
+- **Player Links**: Acesso direto ao player WaveSurfer de cada música
 - **APIs**: Endpoints completos para todas as operações
 
 ### 🔧 Configurações Importantes

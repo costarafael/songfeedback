@@ -8,7 +8,8 @@ import {
   BarChartOutlined,
   UploadOutlined,
   SearchOutlined,
-  EditOutlined
+  EditOutlined,
+  PlayCircleOutlined
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/Admin/AdminLayout'
@@ -165,6 +166,15 @@ export default function SongsPage() {
       width: 200,
       render: (_: any, record: Song) => (
         <Space>
+          <Button
+            type="text"
+            icon={<PlayCircleOutlined />}
+            onClick={() => window.open(`/player/${record.id}`, '_blank')}
+            size="small"
+            title="Ouvir no Player"
+          >
+            Player
+          </Button>
           <Button
             type="text"
             icon={<EditOutlined />}

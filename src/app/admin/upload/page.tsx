@@ -27,6 +27,9 @@ export default function UploadPage() {
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadedFile, setUploadedFile] = useState<any>(null)
+  const [transcribing, setTranscribing] = useState(false)
+  const [enableTranscription, setEnableTranscription] = useState(true)
+  const [transcriptionResult, setTranscriptionResult] = useState<string>('')
   const router = useRouter()
 
   const handleUpload = async (options: any) => {
@@ -119,6 +122,38 @@ export default function UploadPage() {
 
       if (response.ok) {
         message.success('Informações da música atualizadas com sucesso!')
+        
+        // Se transcrição está habilitada, processar automaticamente
+        if (enableTranscription && uploadedFile.id) {
+          setTranscribing(true)
+          message.info('Iniciando transcrição automática...')
+          
+          try {
+            const transcriptionData = new FormData()
+            transcriptionData.append('songId', uploadedFile.id)
+            
+            const transcriptionResponse = await fetch('/api/transcribe', {
+              method: 'POST',
+              body: transcriptionData
+            })
+            
+            const transcriptionResult = await transcriptionResponse.json()
+            
+            if (transcriptionResponse.ok) {
+              setTranscriptionResult(transcriptionResult.transcription?.text || 'Transcrição concluída')
+              message.success('Música atualizada e transcrita com sucesso!')
+            } else {
+              const errorMsg = transcriptionResult.error || `Erro HTTP ${transcriptionResponse.status}`
+              message.warning('Música atualizada, mas erro na transcrição: ' + errorMsg)
+            }
+          } catch (transcriptionError) {
+            console.error('Transcription error:', transcriptionError)
+            message.warning('Música atualizada, mas erro na transcrição automática')
+          } finally {
+            setTranscribing(false)
+          }
+        }
+        
         router.push('/admin/songs')
       } else {
         message.error('Erro ao atualizar informações da música')
@@ -207,13 +242,54 @@ export default function UploadPage() {
 
                   <Form.Item>
                     <Space>
-                      <Button type="primary" htmlType="submit">
-                        Salvar Informações
+                      <input
+                        type="checkbox"
+                        checked={enableTranscription}
+                        onChange={(e) => setEnableTranscription(e.target.checked)}
+                        style={{ marginRight: '8px' }}
+                      />
+                      <Text>Transcrever letra automaticamente (ElevenLabs)</Text>
+                    </Space>
+                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                      A transcrição será processada após salvar e salvará a letra com timestamps
+                    </div>
+                  </Form.Item>
+
+                  {transcriptionResult && (
+                    <div style={{ 
+                      padding: '12px', 
+                      backgroundColor: '#f0f9ff', 
+                      border: '1px solid #bae6fd', 
+                      borderRadius: '6px',
+                      marginBottom: '16px'
+                    }}>
+                      <Text strong style={{ color: '#1e40af' }}>Letra Transcrita:</Text>
+                      <div style={{ 
+                        fontSize: '14px', 
+                        color: '#1e40af', 
+                        whiteSpace: 'pre-wrap',
+                        marginTop: '8px'
+                      }}>
+                        {transcriptionResult}
+                      </div>
+                    </div>
+                  )}
+
+                  <Form.Item>
+                    <Space>
+                      <Button 
+                        type="primary" 
+                        htmlType="submit"
+                        loading={transcribing}
+                      >
+                        {transcribing ? 'Transcrevendo...' : 'Salvar Informações'}
                       </Button>
                       <Button 
                         onClick={() => {
                           setUploadedFile(null)
                           setUploadProgress(0)
+                          setTranscriptionResult('')
+                          setEnableTranscription(true)
                           form.resetFields()
                         }}
                       >
