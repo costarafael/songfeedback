@@ -69,6 +69,14 @@
       "namedRegex": "^/api/playlists/(?<nxtPid>[^/]+?)/songs/(?<nxtPsongId>[^/]+?)(?:/)?$"
     },
     {
+      "page": "/api/songs/[id]",
+      "regex": "^/api/songs/([^/]+?)(?:/)?$",
+      "routeKeys": {
+        "nxtPid": "nxtPid"
+      },
+      "namedRegex": "^/api/songs/(?<nxtPid>[^/]+?)(?:/)?$"
+    },
+    {
       "page": "/api/songs/[id]/analytics",
       "regex": "^/api/songs/([^/]+?)/analytics(?:/)?$",
       "routeKeys": {
