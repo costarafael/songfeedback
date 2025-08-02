@@ -38,7 +38,7 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
     },
     {
       key: '/admin/songs',
-      icon: <MusicOutlined />,
+      icon: <SoundOutlined />,
       label: 'Músicas',
       onClick: () => router.push('/admin/songs'),
     },
@@ -107,7 +107,7 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
           borderBottom: '1px solid #f0f0f0',
         }}>
           {collapsed ? (
-            <MusicOutlined style={{ fontSize: 24, color: '#8b5cf6' }} />
+            <SoundOutlined style={{ fontSize: 24, color: '#8b5cf6' }} />
           ) : (
             <Title level={4} style={{ margin: 0, color: '#8b5cf6' }}>
               Feedback Song

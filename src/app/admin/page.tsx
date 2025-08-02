@@ -260,7 +260,7 @@ export default function AdminDashboard() {
                         <Space>
                           <Text strong>{song.title}</Text>
                           {song.transcription_data && (
-                            <Tag color="blue" size="small">COM LETRA</Tag>
+                            <Tag color="blue">COM LETRA</Tag>
                           )}
                         </Space>
                       }
