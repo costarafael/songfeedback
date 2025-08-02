@@ -19,10 +19,16 @@ export async function POST(request: NextRequest) {
 
     console.log('Creating signed upload URL for:', fileName, fileType)
 
+    // Generate unique filename to avoid conflicts
+    const timestamp = Date.now()
+    const uniqueFileName = `${timestamp}-${fileName}`
+
     // Create a signed upload URL that allows the client to upload directly
     const { data, error } = await supabaseAdmin.storage
       .from('songs')
-      .createSignedUploadUrl(fileName)
+      .createSignedUploadUrl(uniqueFileName, {
+        upsert: false
+      })
 
     if (error) {
       console.error('Error creating signed URL:', error)
@@ -35,13 +41,14 @@ export async function POST(request: NextRequest) {
     // Get the public URL for the file
     const { data: { publicUrl } } = supabaseAdmin.storage
       .from('songs')
-      .getPublicUrl(fileName)
+      .getPublicUrl(uniqueFileName)
 
     return NextResponse.json({
       success: true,
       uploadUrl: data.signedUrl,
       publicUrl: publicUrl,
-      fileName: fileName
+      key: uniqueFileName,
+      fileName: uniqueFileName
     })
 
   } catch (error) {

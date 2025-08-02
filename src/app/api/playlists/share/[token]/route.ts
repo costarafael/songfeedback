@@ -47,10 +47,16 @@ export async function GET(
       )
     }
 
+    // Transform the songs data to match the expected format
+    const transformedSongs = songs?.map(playlistSong => ({
+      ...playlistSong,
+      song: playlistSong.song
+    })) || []
+
     return NextResponse.json({ 
       playlist: {
         ...playlist,
-        songs
+        songs: transformedSongs
       }
     })
 
