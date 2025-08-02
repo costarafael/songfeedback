@@ -114,8 +114,7 @@ export default function UploadPage() {
         body: JSON.stringify({
           id: uploadedFile.id,
           title: values.title,
-          artist: values.artist,
-          description: values.description
+          artist: values.artist
         })
       })
 
@@ -189,8 +188,7 @@ export default function UploadPage() {
                   onFinish={handleFormSubmit}
                   initialValues={{
                     title: uploadedFile.title,
-                    artist: '',
-                    description: ''
+                    artist: ''
                   }}
                 >
                   <Form.Item
@@ -206,16 +204,6 @@ export default function UploadPage() {
                     name="artist"
                   >
                     <Input placeholder="Nome do artista (opcional)" />
-                  </Form.Item>
-
-                  <Form.Item
-                    label="Descrição"
-                    name="description"
-                  >
-                    <Input.TextArea 
-                      rows={3} 
-                      placeholder="Descrição ou informações adicionais (opcional)" 
-                    />
                   </Form.Item>
 
                   <Form.Item>

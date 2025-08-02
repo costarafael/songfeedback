@@ -35,7 +35,7 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, artist, description, file_key, file_url } = body
+    const { title, artist, file_key, file_url } = body
 
     if (!title || !file_key) {
       return NextResponse.json(
@@ -49,7 +49,6 @@ export async function POST(request: Request) {
       .insert([{
         title,
         artist: artist || null,
-        description: description || null,
         file_key,
         file_url: file_url || null,
         upload_date: new Date().toISOString(),
@@ -80,7 +79,7 @@ export async function POST(request: Request) {
 export async function PUT(request: Request) {
   try {
     const body = await request.json()
-    const { id, title, artist, description } = body
+    const { id, title, artist } = body
 
     if (!id || !title) {
       return NextResponse.json(
@@ -93,8 +92,7 @@ export async function PUT(request: Request) {
       .from('songs')
       .update({
         title,
-        artist: artist || null,
-        description: description || null
+        artist: artist || null
       })
       .eq('id', id)
       .select()

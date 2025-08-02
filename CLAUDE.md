@@ -3,17 +3,29 @@
 ## Visão Geral
 Aplicação web para coletar feedback de usuários através de reações (emojis) durante a reprodução de músicas com visualização de waveform.
 
-## Funcionalidades
+## Funcionalidades Principais
 - **Player de Áudio**: Waveform visual + controles play/pause + navegação por clique
 - **Sistema de Reacts**: 4 emojis (❤️ love, 👍 like, 👎 dislike, 😠 angry)
-- **Módulo Admin**: Upload de músicas + estatísticas detalhadas
-- **Analytics**: Coleta de timestamps de reações + contagem de ouvintes
+- **Módulo Admin Completo**: Interface profissional com Ant Design
+  - Dashboard com estatísticas gerais
+  - Upload de músicas com Supabase Storage
+  - Gestão de músicas (CRUD completo)
+  - Gestão de playlists com ordenação visual
+  - Estatísticas detalhadas por música
+- **Sistema de Playlists**: Criação, edição e compartilhamento público
+- **Analytics Avançadas**: 
+  - Mapa de calor de reprodução
+  - Segmentos mais pulados
+  - Timeline de reações
+  - Estatísticas de engajamento
 
 ## Stack Tecnológica
-- **Frontend**: Next.js 14 + TypeScript + Tailwind CSS
+- **Frontend**: Next.js 15.4.5 + TypeScript + Tailwind CSS
+- **UI Framework**: Ant Design (antd) para interface admin
 - **Audio**: WaveSurfer.js para waveform e player
-- **Database**: Supabase (PostgreSQL)
-- **Icons**: Lucide React
+- **Database**: Supabase (PostgreSQL) + Storage
+- **Icons**: Lucide React + Ant Design Icons
+- **Deployment**: Vercel (https://songfeedback-d66h.vercel.app/)
 
 ## Configuração do Supabase
 - **URL**: https://sosmwuvshpxyhylzsiis.supabase.co
@@ -27,11 +39,12 @@ Aplicação web para coletar feedback de usuários através de reações (emojis
 
 ### Tabelas:
 ```sql
--- Músicas
+-- Músicas (sem campo description)
 songs (
   id: uuid PRIMARY KEY,
   title: text NOT NULL,
   artist: text,
+  file_key: text NOT NULL,   -- Chave do arquivo no Supabase Storage
   file_url: text NOT NULL,
   duration: integer,
   upload_date: timestamp DEFAULT now(),
@@ -44,6 +57,26 @@ songs (
   transcription_confidence: real,
   transcription_job_id: text,
   transcribed_at: timestamp
+)
+
+-- Playlists
+playlists (
+  id: uuid PRIMARY KEY,
+  name: text NOT NULL,
+  description: text,
+  share_token: text UNIQUE NOT NULL,  -- Token para compartilhamento público
+  created_at: timestamp DEFAULT now()
+)
+
+-- Relacionamento Playlist-Músicas (many-to-many com ordenação)
+playlist_songs (
+  id: uuid PRIMARY KEY,
+  playlist_id: uuid REFERENCES playlists(id) ON DELETE CASCADE,
+  song_id: uuid REFERENCES songs(id) ON DELETE CASCADE,
+  position: integer NOT NULL,  -- Ordem das músicas na playlist
+  created_at: timestamp DEFAULT now(),
+  UNIQUE(playlist_id, song_id),
+  UNIQUE(playlist_id, position)
 )
 
 -- Reações dos usuários  
@@ -117,15 +150,36 @@ src/
 ## URLs da Aplicação
 - `/` - Home com lista de músicas
 - `/player/[song-id]` - Player com sistema de reacts
-- `/admin` - Upload e listagem de músicas
+- `/playlist/[token]` - Player de playlist pública (compartilhamento)
+- `/admin` - Dashboard admin com visão geral
+- `/admin/songs` - Gestão de músicas (CRUD)
+- `/admin/playlists` - Gestão de playlists com ordenação
+- `/admin/upload` - Upload de músicas
+- `/admin/stats` - Estatísticas gerais
 - `/admin/stats/[song-id]` - Estatísticas detalhadas por música
 - `/setup` - Página de configuração inicial do banco de dados
 
 ## APIs Disponíveis
-- `POST /api/setup` - Configuração inicial do banco de dados
-- `POST /api/upload` - Upload de arquivos de música
-- `POST /api/update-duration` - Atualização da duração da música
-- `POST /api/transcribe` - Transcrição de música usando ElevenLabs API
+
+### Songs
+- `GET /api/songs` - Listar todas as músicas
+- `POST /api/songs` - Criar nova música (após upload)
+- `PUT /api/songs` - Atualizar informações da música
+- `GET /api/songs/[id]` - Obter música específica
+- `GET /api/songs/[id]/analytics` - Analytics de uma música
+
+### Playlists
+- `GET /api/playlists` - Listar playlists com músicas
+- `POST /api/playlists` - Criar playlist com músicas ordenadas
+- `PUT /api/playlists/[id]` - Atualizar playlist e reordenar músicas
+- `DELETE /api/playlists/[id]` - Deletar playlist
+- `GET /api/playlists/share/[token]` - Obter playlist pública
+
+### Upload & Utils
+- `POST /api/upload-url` - Gerar URL assinada para upload no Supabase Storage
+- `POST /api/update-duration` - Atualizar duração da música
+- `POST /api/transcribe` - Transcrição usando ElevenLabs API
+- `POST /api/setup` - Configuração inicial do banco
 
 ## Configuração ElevenLabs
 - **API Key**: sk_2ca0e00e81f8e3a5455f8854874b7f16bbfb71c66a8956d6
@@ -134,6 +188,27 @@ src/
 ## Dependências Principais
 - **Next.js 15.4.5** - Framework React
 - **@supabase/supabase-js ^2.39.7** - Cliente Supabase
+- **antd ^5.22.6** - UI Framework para admin
 - **wavesurfer.js ^7.7.5** - Visualização waveform
 - **lucide-react ^0.263.1** - Ícones
 - **pg ^8.16.3** - Driver PostgreSQL
+
+## Estado Atual (Agosto 2025)
+### ✅ Funcionalidades Implementadas
+- **Sistema de Upload**: Funcionando com Supabase Storage
+- **Gestão de Playlists**: Interface completa com ordenação visual
+- **Compartilhamento Público**: Links de playlist funcionais
+- **Analytics Completas**: Heatmap, segmentos pulados, timeline
+- **Interface Admin**: Dashboard profissional com Ant Design
+- **APIs**: Endpoints completos para todas as operações
+
+### 🔧 Configurações Importantes
+- **Campo description removido da tabela songs** (não existe no banco)
+- **Upload via Supabase Storage** com URLs assinadas
+- **Playlists com sistema de posições** para ordenação
+- **Tokens únicos** para compartilhamento público
+- **Build e deployment** funcionando no Vercel
+
+### 🚀 Deploy
+- **Produção**: https://songfeedback-d66h.vercel.app/
+- **Admin**: https://songfeedback-d66h.vercel.app/admin
