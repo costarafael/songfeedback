@@ -60,7 +60,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   try {
-    const { name, description } = await request.json()
+    const { name, description, songIds } = await request.json()
 
     if (!name?.trim()) {
       return NextResponse.json(
@@ -114,7 +114,25 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    return NextResponse.json({ playlist })
+    // Add songs to playlist if provided
+    if (songIds && Array.isArray(songIds) && songIds.length > 0) {
+      const playlistSongs = songIds.map((songId, index) => ({
+        playlist_id: playlist.id,
+        song_id: songId,
+        position: index + 1
+      }))
+
+      const { error: songsError } = await supabaseAdmin
+        .from('playlist_songs')
+        .insert(playlistSongs)
+
+      if (songsError) {
+        console.error('Error adding songs to playlist:', songsError)
+        // Don't fail the entire request, just log the error
+      }
+    }
+
+    return NextResponse.json(playlist)
 
   } catch (error) {
     console.error('API error:', error)

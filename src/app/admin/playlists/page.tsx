@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Table, Button, Space, Tag, Typography, Input, Modal, Form, message, Select, Popconfirm } from 'antd'
+import { Table, Button, Space, Tag, Typography, Input, Modal, Form, message, Select, Popconfirm, Card, List, Divider } from 'antd'
 import { 
   UnorderedListOutlined, 
   DeleteOutlined, 
@@ -9,7 +9,10 @@ import {
   EditOutlined,
   PlusOutlined,
   CopyOutlined,
-  SoundOutlined
+  SoundOutlined,
+  ArrowUpOutlined,
+  ArrowDownOutlined,
+  MenuOutlined
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/Admin/AdminLayout'
@@ -31,6 +34,162 @@ interface Playlist {
   share_token: string
   created_at: string
   songs?: Song[]
+}
+
+interface PlaylistSongManagerProps {
+  songs: Song[]
+  selectedSongs: string[]
+  onSongsChange: (songIds: string[]) => void
+}
+
+function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSongManagerProps) {
+  const [availableSongs, setAvailableSongs] = useState<Song[]>([])
+  const [playlistSongs, setPlaylistSongs] = useState<Song[]>([])
+
+  useEffect(() => {
+    // Separar músicas disponíveis das já selecionadas
+    const selected = songs.filter(song => selectedSongs.includes(song.id))
+    const available = songs.filter(song => !selectedSongs.includes(song.id))
+    
+    setPlaylistSongs(selected)
+    setAvailableSongs(available)
+  }, [songs, selectedSongs])
+
+  const addSong = (song: Song) => {
+    const newPlaylistSongs = [...playlistSongs, song]
+    const newAvailableSongs = availableSongs.filter(s => s.id !== song.id)
+    
+    setPlaylistSongs(newPlaylistSongs)
+    setAvailableSongs(newAvailableSongs)
+    onSongsChange(newPlaylistSongs.map(s => s.id))
+  }
+
+  const removeSong = (song: Song) => {
+    const newPlaylistSongs = playlistSongs.filter(s => s.id !== song.id)
+    const newAvailableSongs = [...availableSongs, song].sort((a, b) => a.title.localeCompare(b.title))
+    
+    setPlaylistSongs(newPlaylistSongs)
+    setAvailableSongs(newAvailableSongs)
+    onSongsChange(newPlaylistSongs.map(s => s.id))
+  }
+
+  const moveSong = (fromIndex: number, toIndex: number) => {
+    const newPlaylistSongs = [...playlistSongs]
+    const [movedSong] = newPlaylistSongs.splice(fromIndex, 1)
+    newPlaylistSongs.splice(toIndex, 0, movedSong)
+    
+    setPlaylistSongs(newPlaylistSongs)
+    onSongsChange(newPlaylistSongs.map(s => s.id))
+  }
+
+  const moveUp = (index: number) => {
+    if (index > 0) {
+      moveSong(index, index - 1)
+    }
+  }
+
+  const moveDown = (index: number) => {
+    if (index < playlistSongs.length - 1) {
+      moveSong(index, index + 1)
+    }
+  }
+
+  return (
+    <div>
+      <Form.Item label="Gerenciar Músicas da Playlist">
+        <Space direction="vertical" size="large" style={{ width: '100%' }}>
+          {/* Músicas Disponíveis */}
+          <Card 
+            title="Músicas Disponíveis" 
+            size="small"
+            style={{ maxHeight: 200, overflowY: 'auto' }}
+          >
+            {availableSongs.length > 0 ? (
+              <List
+                size="small"
+                dataSource={availableSongs}
+                renderItem={(song) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        key="add"
+                        type="link"
+                        icon={<PlusOutlined />}
+                        onClick={() => addSong(song)}
+                        size="small"
+                      >
+                        Adicionar
+                      </Button>
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={<SoundOutlined />}
+                      title={song.title}
+                      description={song.artist}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">Todas as músicas já foram adicionadas à playlist</Text>
+            )}
+          </Card>
+
+          {/* Músicas da Playlist */}
+          <Card title={`Músicas da Playlist (${playlistSongs.length})`} size="small">
+            {playlistSongs.length > 0 ? (
+              <List
+                size="small"
+                dataSource={playlistSongs}
+                renderItem={(song, index) => (
+                  <List.Item
+                    actions={[
+                      <Button
+                        key="up"
+                        type="text"
+                        icon={<ArrowUpOutlined />}
+                        onClick={() => moveUp(index)}
+                        disabled={index === 0}
+                        size="small"
+                      />,
+                      <Button
+                        key="down"
+                        type="text"
+                        icon={<ArrowDownOutlined />}
+                        onClick={() => moveDown(index)}
+                        disabled={index === playlistSongs.length - 1}
+                        size="small"
+                      />,
+                      <Button
+                        key="remove"
+                        type="text"
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => removeSong(song)}
+                        size="small"
+                      />
+                    ]}
+                  >
+                    <List.Item.Meta
+                      avatar={
+                        <Tag color="blue" style={{ minWidth: 30, textAlign: 'center' }}>
+                          {index + 1}
+                        </Tag>
+                      }
+                      title={song.title}
+                      description={song.artist}
+                    />
+                  </List.Item>
+                )}
+              />
+            ) : (
+              <Text type="secondary">Nenhuma música adicionada à playlist</Text>
+            )}
+          </Card>
+        </Space>
+      </Form.Item>
+    </div>
+  )
 }
 
 export default function PlaylistsPage() {
@@ -300,34 +459,11 @@ export default function PlaylistsPage() {
           >
             <Input.TextArea rows={3} />
           </Form.Item>
-          <Form.Item
-            label="Músicas"
-            name="songIds"
-            help="Selecione as músicas que farão parte desta playlist"
-          >
-            <Select
-              mode="multiple"
-              placeholder="Selecione as músicas"
-              style={{ width: '100%' }}
-              showSearch
-              filterOption={(input, option) =>
-                (option?.label?.toString() || '').toLowerCase().includes(input.toLowerCase())
-              }
-            >
-              {songs.map(song => (
-                <Option 
-                  key={song.id} 
-                  value={song.id}
-                  label={`${song.title} ${song.artist ? `- ${song.artist}` : ''}`}
-                >
-                  <Space>
-                    <Text>{song.title}</Text>
-                    {song.artist && <Text type="secondary">- {song.artist}</Text>}
-                  </Space>
-                </Option>
-              ))}
-            </Select>
-          </Form.Item>
+          <PlaylistSongManager
+            songs={songs}
+            selectedSongs={form.getFieldValue('songIds') || []}
+            onSongsChange={(songIds) => form.setFieldsValue({ songIds })}
+          />
         </Form>
       </Modal>
     </AdminLayout>

@@ -31,3 +31,90 @@ export async function GET() {
     )
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const { title, artist, description, file_key, file_url } = body
+
+    if (!title || !file_key) {
+      return NextResponse.json(
+        { error: 'Título e file_key são obrigatórios' },
+        { status: 400 }
+      )
+    }
+
+    const { data: song, error } = await supabaseAdmin
+      .from('songs')
+      .insert([{
+        title,
+        artist: artist || null,
+        description: description || null,
+        file_key,
+        file_url: file_url || null,
+        upload_date: new Date().toISOString(),
+        listen_count: 0
+      }])
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error creating song:', error)
+      return NextResponse.json(
+        { error: 'Erro ao criar música: ' + error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(song)
+
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const body = await request.json()
+    const { id, title, artist, description } = body
+
+    if (!id || !title) {
+      return NextResponse.json(
+        { error: 'ID e título são obrigatórios' },
+        { status: 400 }
+      )
+    }
+
+    const { data: song, error } = await supabaseAdmin
+      .from('songs')
+      .update({
+        title,
+        artist: artist || null,
+        description: description || null
+      })
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error updating song:', error)
+      return NextResponse.json(
+        { error: 'Erro ao atualizar música: ' + error.message },
+        { status: 500 }
+      )
+    }
+
+    return NextResponse.json(song)
+
+  } catch (error) {
+    console.error('API error:', error)
+    return NextResponse.json(
+      { error: 'Erro interno do servidor' },
+      { status: 500 }
+    )
+  }
+}

@@ -43,7 +43,7 @@ export async function PUT(
 ) {
   try {
     const { id } = await params
-    const { name, description } = await request.json()
+    const { name, description, songIds } = await request.json()
 
     if (!name?.trim()) {
       return NextResponse.json(
@@ -52,6 +52,7 @@ export async function PUT(
       )
     }
 
+    // Update playlist info
     const { data: playlist, error } = await supabaseAdmin
       .from('playlists')
       .update({
@@ -70,7 +71,38 @@ export async function PUT(
       )
     }
 
-    return NextResponse.json({ playlist })
+    // Update songs if provided
+    if (songIds && Array.isArray(songIds)) {
+      // First, remove all existing songs from the playlist
+      const { error: deleteError } = await supabaseAdmin
+        .from('playlist_songs')
+        .delete()
+        .eq('playlist_id', id)
+
+      if (deleteError) {
+        console.error('Error removing existing songs:', deleteError)
+      }
+
+      // Then add the new songs with their positions
+      if (songIds.length > 0) {
+        const playlistSongs = songIds.map((songId, index) => ({
+          playlist_id: id,
+          song_id: songId,
+          position: index + 1
+        }))
+
+        const { error: insertError } = await supabaseAdmin
+          .from('playlist_songs')
+          .insert(playlistSongs)
+
+        if (insertError) {
+          console.error('Error adding songs to playlist:', insertError)
+          // Don't fail the entire request, just log the error
+        }
+      }
+    }
+
+    return NextResponse.json(playlist)
 
   } catch (error) {
     console.error('API error:', error)
