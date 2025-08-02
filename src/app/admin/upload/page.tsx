@@ -70,7 +70,6 @@ export default function UploadPage() {
       // Create song record
       const songData = {
         title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-        file_key: key,
         file_url: `https://your-s3-bucket.s3.amazonaws.com/${key}` // Adjust this URL
       }
 

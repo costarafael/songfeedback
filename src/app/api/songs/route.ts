@@ -35,11 +35,11 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, artist, file_key, file_url } = body
+    const { title, artist, file_url } = body
 
-    if (!title || !file_key) {
+    if (!title || !file_url) {
       return NextResponse.json(
-        { error: 'Título e file_key são obrigatórios' },
+        { error: 'Título e file_url são obrigatórios' },
         { status: 400 }
       )
     }
@@ -49,8 +49,7 @@ export async function POST(request: Request) {
       .insert([{
         title,
         artist: artist || null,
-        file_key,
-        file_url: file_url || null,
+        file_url,
         upload_date: new Date().toISOString(),
         listen_count: 0
       }])
