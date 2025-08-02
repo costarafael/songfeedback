@@ -318,6 +318,7 @@ export default function PlaylistPage() {
                   onClick={() => setShowLyrics(!showLyrics)}
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm"
                   style={getButtonStyles(showLyrics, 'small')}
+                  data-onboarding="lyrics-button"
                 >
                   {showLyrics ? (
                     <>
@@ -363,6 +364,11 @@ export default function PlaylistPage() {
             description: "Você pode navegar entre as músicas clicando no botão 'Ver playlist'",
             targetSelector: '[data-onboarding="playlist-button"]'
           },
+          ...(currentSong?.transcription_data ? [{
+            title: "Acompanhar a letra",
+            description: "Clique aqui se desejar acompanhar a letra da música",
+            targetSelector: '[data-onboarding="lyrics-button"]'
+          }] : []),
           {
             title: "Controle de reprodução",
             description: "Você pode tocar a música ou pausar usando este botão",

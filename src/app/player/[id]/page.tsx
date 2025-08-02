@@ -199,6 +199,7 @@ export default function PlayerPage() {
                   onClick={() => setShowLyrics(!showLyrics)}
                   className="flex items-center space-x-2 px-3 py-1.5 rounded-lg text-sm"
                   style={getButtonStyles(showLyrics, 'small')}
+                  data-onboarding="lyrics-button"
                 >
                   {showLyrics ? (
                     <>
@@ -239,6 +240,11 @@ export default function PlayerPage() {
             description: "Durante a música clique nas reações que desejar para indicar as partes que tenha ou não gostado",
             targetSelector: '[data-onboarding="reactions"]'
           },
+          ...(song?.transcription_data ? [{
+            title: "Acompanhar a letra",
+            description: "Clique aqui se desejar acompanhar a letra da música",
+            targetSelector: '[data-onboarding="lyrics-button"]'
+          }] : []),
           {
             title: "Controle de reprodução",
             description: "Você pode tocar a música ou pausar usando este botão",
