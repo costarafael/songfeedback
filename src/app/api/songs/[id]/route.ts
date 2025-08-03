@@ -56,7 +56,7 @@ export async function DELETE(
     // First check if song exists
     const { data: song, error: fetchError } = await supabaseAdmin
       .from('songs')
-      .select('file_key')
+      .select('file_url')
       .eq('id', id)
       .single()
 
@@ -106,10 +106,14 @@ export async function DELETE(
     }
 
     // Delete the file from Supabase Storage
-    if (song.file_key) {
+    if (song.file_url) {
+      // Extract file path from URL for storage deletion
+      const urlParts = song.file_url.split('/')
+      const fileName = urlParts[urlParts.length - 1]
+      
       const { error: storageError } = await supabaseAdmin.storage
         .from('songs')
-        .remove([song.file_key])
+        .remove([fileName])
 
       if (storageError) {
         console.error('Error deleting file from storage:', storageError)
