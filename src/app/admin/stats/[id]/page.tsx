@@ -241,35 +241,6 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
           )}
         </Row>
 
-        {/* Reaction Breakdown */}
-        {reactionStats.length > 0 && (
-          <Card>
-            <Title level={4}>Distribuição de Reações</Title>
-            <Row gutter={[16, 16]}>
-              {reactionStats.map((stat) => {
-                const percentage = totalReactions > 0 ? (stat.count / totalReactions * 100).toFixed(1) : '0'
-                
-                const config = reactionConfig[stat.reaction_type as keyof typeof reactionConfig]
-                
-                return (
-                  <Col xs={12} sm={6} key={stat.reaction_type}>
-                    <Card size="small" style={{ textAlign: 'center' }}>
-                      <div style={{ fontSize: 32, marginBottom: 8 }}>
-                        {config.icon}
-                      </div>
-                      <Statistic
-                        title={config.label}
-                        value={stat.count}
-                        suffix={<span style={{ fontSize: 12 }}>({percentage}%)</span>}
-                        valueStyle={{ color: config.color }}
-                      />
-                    </Card>
-                  </Col>
-                )
-              })}
-            </Row>
-          </Card>
-        )}
 
         {/* Listening Heatmap */}
         {analytics && analytics.heatmap && (
@@ -304,34 +275,6 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
           </Card>
         )}
 
-        {/* Recent Reactions */}
-        {reactions.length > 0 && (
-          <Card>
-            <Title level={4}>Reações Recentes</Title>
-            <Timeline>
-              {reactions.slice(-10).reverse().map((reaction) => {
-                const config = reactionConfig[reaction.reaction_type as keyof typeof reactionConfig]
-                
-                return (
-                  <Timeline.Item 
-                    key={reaction.id}
-                    dot={<span style={{ fontSize: 16 }}>{config.icon}</span>}
-                    color={config.color}
-                  >
-                    <Space>
-                      <Text strong>
-                        {config.label}
-                      </Text>
-                      <Text type="secondary">
-                        em {formatTime(reaction.timestamp)}
-                      </Text>
-                    </Space>
-                  </Timeline.Item>
-                )
-              })}
-            </Timeline>
-          </Card>
-        )}
 
         {/* No Data Message */}
         {totalReactions === 0 && (!analytics || analytics.totalSessions === 0) && (
