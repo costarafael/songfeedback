@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Table, Button, Space, Tag, Typography, Input, Modal, Form, App, Select, Popconfirm, Card, List, Divider } from 'antd'
+import { Table, Button, Space, Tag, Typography, Input, Modal, Form, App, Select, Popconfirm, Card, List, Divider, Row, Col, Dropdown } from 'antd'
+import type { TableProps } from 'antd'
 import { 
   UnorderedListOutlined, 
   DeleteOutlined, 
@@ -12,10 +13,12 @@ import {
   SoundOutlined,
   ArrowUpOutlined,
   ArrowDownOutlined,
-  MenuOutlined
+  MenuOutlined,
+  MoreOutlined
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/Admin/AdminLayout'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -43,6 +46,7 @@ interface PlaylistSongManagerProps {
 }
 
 function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSongManagerProps) {
+  const { isMobile } = useResponsive()
   const [availableSongs, setAvailableSongs] = useState<Song[]>([])
   const [playlistSongs, setPlaylistSongs] = useState<Song[]>([])
 
@@ -102,7 +106,7 @@ function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSo
           <Card 
             title="Músicas Disponíveis" 
             size="small"
-            style={{ maxHeight: 200, overflowY: 'auto' }}
+            style={{ maxHeight: isMobile ? 150 : 200, overflowY: 'auto' }}
           >
             {availableSongs.length > 0 ? (
               <List
@@ -118,20 +122,24 @@ function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSo
                         onClick={() => addSong(song)}
                         size="small"
                       >
-                        Adicionar
+                        {isMobile ? '' : 'Adicionar'}
                       </Button>
                     ]}
                   >
                     <List.Item.Meta
                       avatar={<SoundOutlined />}
-                      title={song.title}
-                      description={song.artist}
+                      title={<span style={{ fontSize: isMobile ? 14 : undefined }}>{song.title}</span>}
+                      description={song.artist && (
+                        <span style={{ fontSize: isMobile ? 12 : undefined }}>{song.artist}</span>
+                      )}
                     />
                   </List.Item>
                 )}
               />
             ) : (
-              <Text type="secondary">Todas as músicas já foram adicionadas à playlist</Text>
+              <Text type="secondary" style={{ fontSize: isMobile ? 12 : undefined }}>
+                Todas as músicas já foram adicionadas à playlist
+              </Text>
             )}
           </Card>
 
@@ -143,7 +151,47 @@ function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSo
                 dataSource={playlistSongs}
                 renderItem={(song, index) => (
                   <List.Item
-                    actions={[
+                    actions={isMobile ? [
+                      <Dropdown
+                        key="actions"
+                        menu={{
+                          items: [
+                            {
+                              key: 'up',
+                              label: 'Mover para cima',
+                              icon: <ArrowUpOutlined />,
+                              disabled: index === 0,
+                              onClick: () => moveUp(index),
+                            },
+                            {
+                              key: 'down',
+                              label: 'Mover para baixo',
+                              icon: <ArrowDownOutlined />,
+                              disabled: index === playlistSongs.length - 1,
+                              onClick: () => moveDown(index),
+                            },
+                            {
+                              type: 'divider' as const,
+                            },
+                            {
+                              key: 'remove',
+                              label: 'Remover',
+                              icon: <DeleteOutlined />,
+                              danger: true,
+                              onClick: () => removeSong(song),
+                            },
+                          ],
+                        }}
+                        trigger={['click']}
+                        placement="bottomRight"
+                      >
+                        <Button
+                          type="text"
+                          icon={<MoreOutlined />}
+                          size="small"
+                        />
+                      </Dropdown>
+                    ] : [
                       <Button
                         key="up"
                         type="text"
@@ -172,18 +220,26 @@ function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSo
                   >
                     <List.Item.Meta
                       avatar={
-                        <Tag color="blue" style={{ minWidth: 30, textAlign: 'center' }}>
+                        <Tag color="blue" style={{ 
+                          minWidth: isMobile ? 25 : 30, 
+                          textAlign: 'center',
+                          fontSize: isMobile ? '11px' : undefined
+                        }}>
                           {index + 1}
                         </Tag>
                       }
-                      title={song.title}
-                      description={song.artist}
+                      title={<span style={{ fontSize: isMobile ? 14 : undefined }}>{song.title}</span>}
+                      description={song.artist && (
+                        <span style={{ fontSize: isMobile ? 12 : undefined }}>{song.artist}</span>
+                      )}
                     />
                   </List.Item>
                 )}
               />
             ) : (
-              <Text type="secondary">Nenhuma música adicionada à playlist</Text>
+              <Text type="secondary" style={{ fontSize: isMobile ? 12 : undefined }}>
+                Nenhuma música adicionada à playlist
+              </Text>
             )}
           </Card>
         </Space>
@@ -194,6 +250,7 @@ function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSo
 
 export default function PlaylistsPage() {
   const { message } = App.useApp()
+  const { isMobile, isTablet } = useResponsive()
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [songs, setSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
@@ -328,77 +385,146 @@ export default function PlaylistsPage() {
     (playlist.description && playlist.description.toLowerCase().includes(searchText.toLowerCase()))
   )
 
-  const columns = [
+  const getActionDropdown = (record: Playlist) => ({
+    items: [
+      {
+        key: 'edit',
+        label: 'Editar',
+        icon: <EditOutlined />,
+        onClick: () => handleEdit(record),
+      },
+      {
+        key: 'copy',
+        label: 'Copiar Link',
+        icon: <CopyOutlined />,
+        onClick: () => copyShareLink(record.share_token),
+      },
+      {
+        key: 'view',
+        label: 'Visualizar',
+        icon: <ShareAltOutlined />,
+        onClick: () => window.open(`/playlist/${record.share_token}`, '_blank'),
+      },
+      {
+        type: 'divider' as const,
+      },
+      {
+        key: 'delete',
+        label: 'Excluir',
+        icon: <DeleteOutlined />,
+        danger: true,
+        onClick: () => {
+          Modal.confirm({
+            title: 'Excluir playlist',
+            content: 'Tem certeza que deseja excluir esta playlist?',
+            okText: 'Sim',
+            cancelText: 'Não',
+            onOk: () => handleDelete(record.id),
+          })
+        },
+      },
+    ],
+  })
+
+  const columns: TableProps<Playlist>['columns'] = [
     {
       title: 'Playlist',
       dataIndex: 'name',
       key: 'name',
       render: (text: string, record: Playlist) => (
-        <Space direction="vertical" size="small">
-          <Text strong>{text}</Text>
-          {record.description && <Text type="secondary">{record.description}</Text>}
-          <Space>
-            <Tag icon={<SoundOutlined />} color="blue">
+        <Space direction="vertical" size={isMobile ? "small" : "middle"}>
+          <Text strong={!isMobile} style={{ fontSize: isMobile ? 14 : undefined }}>
+            {text}
+          </Text>
+          {record.description && (
+            <Text type="secondary" style={{ fontSize: isMobile ? 12 : undefined }}>
+              {record.description}
+            </Text>
+          )}
+          <Space wrap>
+            <Tag icon={<SoundOutlined />} color="blue" style={{ fontSize: isMobile ? '11px' : undefined }}>
               {record.songs?.length || 0} música(s)
             </Tag>
+            {isMobile && (
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {new Date(record.created_at).toLocaleDateString('pt-BR')}
+              </Text>
+            )}
           </Space>
         </Space>
       ),
     },
-    {
-      title: 'Criado em',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (date: string) => new Date(date).toLocaleDateString('pt-BR'),
-      width: 120,
-    },
+    ...(!isMobile ? [
+      {
+        title: 'Criado em',
+        dataIndex: 'created_at',
+        key: 'created_at',
+        render: (date: string) => new Date(date).toLocaleDateString('pt-BR'),
+        width: 120,
+        responsive: ['md' as const],
+      }
+    ] : []),
     {
       title: 'Ações',
       key: 'actions',
-      width: 250,
+      width: isMobile ? 60 : 250,
       render: (_: any, record: Playlist) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-          >
-            Editar
-          </Button>
-          <Button
-            type="text"
-            icon={<CopyOutlined />}
-            onClick={() => copyShareLink(record.share_token)}
-            size="small"
-          >
-            Copiar Link
-          </Button>
-          <Button
-            type="text"
-            icon={<ShareAltOutlined />}
-            onClick={() => window.open(`/playlist/${record.share_token}`, '_blank')}
-            size="small"
-          >
-            Visualizar
-          </Button>
-          <Popconfirm
-            title="Excluir playlist"
-            description="Tem certeza que deseja excluir esta playlist?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Sim"
-            cancelText="Não"
+        isMobile ? (
+          <Dropdown
+            menu={getActionDropdown(record)}
+            trigger={['click']}
+            placement="bottomRight"
           >
             <Button
               type="text"
-              danger
-              icon={<DeleteOutlined />}
+              icon={<MoreOutlined />}
+              size="small"
+            />
+          </Dropdown>
+        ) : (
+          <Space>
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
               size="small"
             >
-              Excluir
+              Editar
             </Button>
-          </Popconfirm>
-        </Space>
+            <Button
+              type="text"
+              icon={<CopyOutlined />}
+              onClick={() => copyShareLink(record.share_token)}
+              size="small"
+            >
+              Copiar Link
+            </Button>
+            <Button
+              type="text"
+              icon={<ShareAltOutlined />}
+              onClick={() => window.open(`/playlist/${record.share_token}`, '_blank')}
+              size="small"
+            >
+              Visualizar
+            </Button>
+            <Popconfirm
+              title="Excluir playlist"
+              description="Tem certeza que deseja excluir esta playlist?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Sim"
+              cancelText="Não"
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              >
+                Excluir
+              </Button>
+            </Popconfirm>
+          </Space>
+        )
       ),
     },
   ]
@@ -408,37 +534,46 @@ export default function PlaylistsPage() {
       title="Gestão de Playlists"
       breadcrumbs={[{ title: 'Playlists' }]}
     >
-      <div style={{ marginBottom: 16 }}>
-        <Space>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={16} md={12} lg={8}>
           <Search
             placeholder="Buscar por nome ou descrição..."
             allowClear
-            style={{ width: 300 }}
+            style={{ width: '100%' }}
             onSearch={setSearchText}
             onChange={(e) => setSearchText(e.target.value)}
+            size={isMobile ? 'large' : 'middle'}
           />
+        </Col>
+        <Col xs={24} sm={8} md={12} lg={16} style={{ textAlign: isMobile ? 'left' : 'right' }}>
           <Button 
             type="primary" 
             icon={<PlusOutlined />}
             onClick={handleCreate}
+            block={isMobile}
+            size={isMobile ? 'large' : 'middle'}
           >
             Nova Playlist
           </Button>
-        </Space>
-      </div>
+        </Col>
+      </Row>
 
       <Table
         dataSource={filteredPlaylists}
         columns={columns}
         rowKey="id"
         loading={loading}
+        scroll={{ x: 'max-content' }}
         pagination={{
-          pageSize: 20,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} de ${total} playlists`,
+          pageSize: isMobile ? 10 : 20,
+          showSizeChanger: !isMobile,
+          showQuickJumper: !isMobile,
+          simple: isMobile,
+          showTotal: !isMobile ? (total, range) => 
+            `${range[0]}-${range[1]} de ${total} playlists` : undefined,
         }}
+        size={isMobile ? 'small' : 'middle'}
+        style={{ background: '#fff' }}
       />
 
       <Modal
@@ -448,7 +583,8 @@ export default function PlaylistsPage() {
         onCancel={() => setIsModalVisible(false)}
         okText="Salvar"
         cancelText="Cancelar"
-        width={600}
+        width={isMobile ? '95vw' : 600}
+        style={isMobile ? { top: 20 } : {}}
       >
         <Form form={form} layout="vertical">
           <Form.Item

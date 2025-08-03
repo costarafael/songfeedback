@@ -11,6 +11,7 @@ import {
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/Admin/AdminLayout'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { Title, Text } = Typography
 
@@ -34,6 +35,7 @@ interface OverallStats {
 
 export default function StatsOverviewPage() {
   const { message } = App.useApp()
+  const { isMobile, isTablet } = useResponsive()
   const [overallStats, setOverallStats] = useState<OverallStats>({
     total_songs: 0,
     total_playlists: 0,
@@ -123,7 +125,49 @@ export default function StatsOverviewPage() {
     }
   }
 
-  const columns = [
+  // Mobile columns - show only essential info
+  const mobileColumns = [
+    {
+      title: 'Música',
+      dataIndex: 'title',
+      key: 'title',
+      render: (text: string, record: SongStats, index: number) => (
+        <Space direction="vertical" size="small" style={{ width: '100%' }}>
+          <Space>
+            <Text strong style={{ fontSize: 12, color: '#1890ff' }}>#{index + 1}</Text>
+            <Text strong style={{ fontSize: 14 }}>{text}</Text>
+          </Space>
+          {record.artist && <Text type="secondary" style={{ fontSize: 12 }}>{record.artist}</Text>}
+          <Space size="small" wrap>
+            <Tag icon={<EyeOutlined />} color="blue" style={{ fontSize: 11 }}>
+              {record.total_listens}
+            </Tag>
+            <Tag icon={<HeartOutlined />} color="purple" style={{ fontSize: 11 }}>
+              {record.total_reactions}
+            </Tag>
+            <Tag color="green" style={{ fontSize: 11 }}>
+              {Math.round(record.avg_completion_rate)}%
+            </Tag>
+            {record.transcription_data && (
+              <Tag color="cyan" style={{ fontSize: 11 }}>LETRA</Tag>
+            )}
+          </Space>
+          <Button
+            type="primary"
+            icon={<BarChartOutlined />}
+            onClick={() => router.push(`/admin/stats/${record.id}`)}
+            size="small"
+            style={{ marginTop: 4 }}
+          >
+            Ver Detalhes
+          </Button>
+        </Space>
+      ),
+    },
+  ]
+
+  // Desktop columns - full detailed view
+  const desktopColumns = [
     {
       title: '#',
       key: 'rank',
@@ -212,62 +256,85 @@ export default function StatsOverviewPage() {
         {/* Overall Stats Cards */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card size={isMobile ? 'small' : 'default'}>
               <Statistic
                 title="Total de Músicas"
                 value={overallStats.total_songs}
                 prefix={<SoundOutlined />}
-                valueStyle={{ color: '#3f8600' }}
+                valueStyle={{ 
+                  color: '#3f8600',
+                  fontSize: isMobile ? 20 : 24
+                }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card size={isMobile ? 'small' : 'default'}>
               <Statistic
                 title="Total de Playlists"
                 value={overallStats.total_playlists}
                 prefix={<UnorderedListOutlined />}
-                valueStyle={{ color: '#cf1322' }}
+                valueStyle={{ 
+                  color: '#cf1322',
+                  fontSize: isMobile ? 20 : 24
+                }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card size={isMobile ? 'small' : 'default'}>
               <Statistic
                 title="Total de Reproduções"
                 value={overallStats.total_listens}
                 prefix={<EyeOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ 
+                  color: '#1890ff',
+                  fontSize: isMobile ? 20 : 24
+                }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card size={isMobile ? 'small' : 'default'}>
               <Statistic
                 title="Total de Reações"
                 value={overallStats.total_reactions}
                 prefix={<HeartOutlined />}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ 
+                  color: '#722ed1',
+                  fontSize: isMobile ? 20 : 24
+                }}
               />
             </Card>
           </Col>
         </Row>
 
         {/* Top Songs Table */}
-        <Card>
-          <div style={{ marginBottom: 16 }}>
-            <Title level={4}>
-              <BarChartOutlined /> Top 10 Músicas Mais Ouvidas
+        <Card size={isMobile ? 'small' : 'default'}>
+          <div style={{ marginBottom: isMobile ? 12 : 16 }}>
+            <Title level={isMobile ? 5 : 4}>
+              <BarChartOutlined /> Top 10 Músicas {isMobile ? '' : 'Mais Ouvidas'}
             </Title>
           </div>
           
           <Table
             dataSource={topSongs}
-            columns={columns}
+            columns={isMobile ? mobileColumns : desktopColumns}
             rowKey="id"
             loading={loading}
-            pagination={false}
-            size="middle"
+            pagination={{
+              pageSize: isMobile ? 5 : 10,
+              showSizeChanger: !isMobile,
+              showQuickJumper: !isMobile,
+              showTotal: (total, range) => 
+                isMobile 
+                  ? `${range[0]}-${range[1]} de ${total}`
+                  : `${range[0]}-${range[1]} de ${total} músicas`,
+              size: isMobile ? 'small' : 'default'
+            }}
+            size={isMobile ? 'small' : 'middle'}
+            scroll={isMobile ? { x: 'max-content' } : undefined}
+            showHeader={!isMobile}
           />
         </Card>
       </Space>

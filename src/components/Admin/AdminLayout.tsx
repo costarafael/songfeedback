@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState } from 'react'
-import { Layout, Menu, Button, Typography, Breadcrumb, Avatar } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Layout, Menu, Button, Typography, Breadcrumb, Avatar, Drawer } from 'antd'
 import {
   DashboardOutlined,
   SoundOutlined,
@@ -26,8 +26,20 @@ interface AdminLayoutProps {
 
 export default function AdminLayout({ children, title, breadcrumbs }: AdminLayoutProps) {
   const [collapsed, setCollapsed] = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+    
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const menuItems = [
     {
@@ -82,53 +94,96 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
     return []
   }
 
+  const SidebarContent = () => (
+    <>
+      <div style={{ 
+        height: 64, 
+        display: 'flex', 
+        alignItems: 'center', 
+        justifyContent: (!isMobile && collapsed) ? 'center' : 'flex-start',
+        padding: (!isMobile && collapsed) ? 0 : '0 24px',
+        borderBottom: '1px solid #f0f0f0',
+      }}>
+        {(!isMobile && collapsed) ? (
+          <SoundOutlined style={{ fontSize: 24, color: '#8b5cf6' }} />
+        ) : (
+          <Title level={4} style={{ margin: 0, color: '#8b5cf6' }}>
+            Feedback Song
+          </Title>
+        )}
+      </div>
+      
+      <Menu
+        mode="inline"
+        selectedKeys={getSelectedKeys()}
+        defaultOpenKeys={getOpenKeys()}
+        items={menuItems}
+        style={{ 
+          borderRight: 0, 
+          height: isMobile ? 'calc(100vh - 64px)' : 'calc(100vh - 64px)', 
+          overflowY: 'auto' 
+        }}
+      />
+    </>
+  )
+
   return (
     <Layout style={{ minHeight: '100vh' }}>
-      <Sider
-        trigger={null}
-        collapsible
-        collapsed={collapsed}
-        width={256}
-        style={{
-          position: 'fixed',
-          height: '100vh',
-          left: 0,
-          top: 0,
-          bottom: 0,
-          zIndex: 1000,
-        }}
-      >
-        <div style={{ 
-          height: 64, 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          padding: collapsed ? 0 : '0 24px',
-          borderBottom: '1px solid #f0f0f0',
-        }}>
-          {collapsed ? (
-            <SoundOutlined style={{ fontSize: 24, color: '#8b5cf6' }} />
-          ) : (
+      {isMobile ? (
+        <Drawer
+          title={
             <Title level={4} style={{ margin: 0, color: '#8b5cf6' }}>
               Feedback Song
             </Title>
-          )}
-        </div>
-        
-        <Menu
-          mode="inline"
-          selectedKeys={getSelectedKeys()}
-          defaultOpenKeys={getOpenKeys()}
-          items={menuItems}
-          style={{ borderRight: 0, height: 'calc(100vh - 64px)', overflowY: 'auto' }}
-        />
-      </Sider>
+          }
+          placement="left"
+          onClose={() => setCollapsed(true)}
+          open={!collapsed}
+          bodyStyle={{ padding: 0 }}
+          width={280}
+        >
+          <Menu
+            mode="inline"
+            selectedKeys={getSelectedKeys()}
+            defaultOpenKeys={getOpenKeys()}
+            items={menuItems}
+            style={{ border: 0 }}
+          />
+        </Drawer>
+      ) : (
+        <Sider
+          trigger={null}
+          collapsible
+          collapsed={collapsed}
+          width={256}
+          breakpoint="lg"
+          collapsedWidth="80"
+          onBreakpoint={(broken) => {
+            if (broken) {
+              setCollapsed(true)
+            }
+          }}
+          style={{
+            position: 'fixed',
+            height: '100vh',
+            left: 0,
+            top: 0,
+            bottom: 0,
+            zIndex: 1000,
+          }}
+        >
+          <SidebarContent />
+        </Sider>
+      )}
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 256, transition: 'margin-left 0.2s' }}>
+      <Layout style={{ 
+        marginLeft: isMobile ? 0 : (collapsed ? 80 : 256), 
+        transition: 'margin-left 0.2s' 
+      }}>
         <Header
           style={{
             background: '#fff',
-            padding: '0 24px',
+            padding: isMobile ? '0 16px' : '0 24px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
@@ -138,7 +193,7 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
             zIndex: 999,
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -146,7 +201,7 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
               style={{ fontSize: 16 }}
             />
             
-            {breadcrumbs && breadcrumbs.length > 0 && (
+            {breadcrumbs && breadcrumbs.length > 0 && !isMobile && (
               <Breadcrumb 
                 style={{ margin: 0 }}
                 items={[
@@ -165,16 +220,16 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
             )}
           </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <Avatar icon={<UserOutlined />} />
-            <span>Admin</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
+            <Avatar icon={<UserOutlined />} size={isMobile ? 'small' : 'default'} />
+            {!isMobile && <span>Admin</span>}
           </div>
         </Header>
 
         <Content
           style={{
-            margin: '24px',
-            padding: '24px',
+            margin: isMobile ? '16px' : '24px',
+            padding: isMobile ? '16px' : '24px',
             background: '#fff',
             borderRadius: 8,
             minHeight: 'calc(100vh - 112px)',

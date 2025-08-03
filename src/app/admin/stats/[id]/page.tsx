@@ -15,6 +15,7 @@ import StatsCharts from '@/components/Admin/StatsCharts'
 import ListeningHeatmap from '@/components/Admin/ListeningHeatmap'
 import SkippedSegments from '@/components/Admin/SkippedSegments'
 import { Reaction, Song, ReactionStats } from '@/lib/types'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { Title, Text } = Typography
 
@@ -70,6 +71,7 @@ function processReactionStats(reactions: Reaction[]): ReactionStats[] {
 
 export default function SongStatsPage({ params }: { params: Promise<{ id: string }> }) {
   const { message } = App.useApp()
+  const { isMobile, isTablet } = useResponsive()
   const [song, setSong] = useState<Song | null>(null)
   const [reactions, setReactions] = useState<Reaction[]>([])
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)
@@ -175,13 +177,20 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
     >
       <Space direction="vertical" size="large" style={{ width: '100%' }}>
         {/* Song Info */}
-        <Card>
+        <Card size={isMobile ? 'small' : 'default'}>
           <Space direction="vertical" size="small">
-            <Title level={2} style={{ margin: 0 }}>
+            <Title level={isMobile ? 3 : 2} style={{ 
+              margin: 0,
+              fontSize: isMobile ? 18 : undefined,
+              wordBreak: 'break-word'
+            }}>
               <SoundOutlined /> {song.title}
             </Title>
             {song.artist && (
-              <Text type="secondary" style={{ fontSize: 16 }}>
+              <Text type="secondary" style={{ 
+                fontSize: isMobile ? 14 : 16,
+                wordBreak: 'break-word'
+              }}>
                 por {song.artist}
               </Text>
             )}
@@ -196,45 +205,57 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
         {/* Summary Stats */}
         <Row gutter={[16, 16]}>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card size={isMobile ? 'small' : 'default'}>
               <Statistic
-                title="Reproduções"
+                title={isMobile ? 'Reproduções' : 'Reproduções'}
                 value={song.listen_count || 0}
                 prefix={<EyeOutlined />}
-                valueStyle={{ color: '#1890ff' }}
+                valueStyle={{ 
+                  color: '#1890ff',
+                  fontSize: isMobile ? 18 : 24
+                }}
               />
             </Card>
           </Col>
           <Col xs={24} sm={12} md={6}>
-            <Card>
+            <Card size={isMobile ? 'small' : 'default'}>
               <Statistic
-                title="Total de Reações"
+                title={isMobile ? 'Reações' : 'Total de Reações'}
                 value={totalReactions}
                 prefix={<HeartOutlined />}
-                valueStyle={{ color: '#722ed1' }}
+                valueStyle={{ 
+                  color: '#722ed1',
+                  fontSize: isMobile ? 18 : 24
+                }}
               />
             </Card>
           </Col>
           {analytics && (
             <>
               <Col xs={24} sm={12} md={6}>
-                <Card>
+                <Card size={isMobile ? 'small' : 'default'}>
                   <Statistic
-                    title="Sessões de Escuta"
+                    title={isMobile ? 'Sessões' : 'Sessões de Escuta'}
                     value={analytics.totalSessions}
                     prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#52c41a' }}
+                    valueStyle={{ 
+                      color: '#52c41a',
+                      fontSize: isMobile ? 18 : 24
+                    }}
                   />
                 </Card>
               </Col>
               <Col xs={24} sm={12} md={6}>
-                <Card>
+                <Card size={isMobile ? 'small' : 'default'}>
                   <Statistic
-                    title="Taxa de Conclusão"
+                    title={isMobile ? 'Conclusão' : 'Taxa de Conclusão'}
                     value={analytics.avgCompletionRate}
                     suffix="%"
                     prefix={<CheckCircleOutlined />}
-                    valueStyle={{ color: '#13c2c2' }}
+                    valueStyle={{ 
+                      color: '#13c2c2',
+                      fontSize: isMobile ? 18 : 24
+                    }}
                   />
                 </Card>
               </Col>
@@ -245,45 +266,76 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
 
         {/* Listening Heatmap */}
         {analytics && analytics.heatmap && (
-          <Card>
-            <Title level={4}>Mapa de Escuta</Title>
-            <ListeningHeatmap 
-              heatmap={analytics.heatmap}
-              duration={song.duration || 0}
-            />
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Title level={isMobile ? 5 : 4}>Mapa de Escuta</Title>
+            <div style={{ 
+              overflowX: isMobile ? 'auto' : 'hidden',
+              padding: isMobile ? '8px 0' : '0'
+            }}>
+              <ListeningHeatmap 
+                heatmap={analytics.heatmap}
+                duration={song.duration || 0}
+              />
+            </div>
           </Card>
         )}
 
         {/* Skipped Segments */}
         {analytics && analytics.mostSkippedSegments && analytics.mostSkippedSegments.length > 0 && (
-          <Card>
-            <Title level={4}>Segmentos Mais Pulados</Title>
-            <SkippedSegments 
-              segments={analytics.mostSkippedSegments}
-            />
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Title level={isMobile ? 5 : 4}>
+              {isMobile ? 'Segmentos Pulados' : 'Segmentos Mais Pulados'}
+            </Title>
+            <div style={{ 
+              overflowX: isMobile ? 'auto' : 'hidden'
+            }}>
+              <SkippedSegments 
+                segments={analytics.mostSkippedSegments}
+              />
+            </div>
           </Card>
         )}
 
         {/* Timeline Visualization */}
         {reactions.length > 0 && (
-          <Card>
-            <Title level={4}>Timeline de Reações</Title>
-            <StatsCharts 
-              reactions={reactions} 
-              duration={song.duration || 0}
-              reactionStats={reactionStats}
-            />
+          <Card size={isMobile ? 'small' : 'default'}>
+            <Title level={isMobile ? 5 : 4}>
+              {isMobile ? 'Timeline' : 'Timeline de Reações'}
+            </Title>
+            <div style={{ 
+              overflowX: isMobile ? 'auto' : 'hidden',
+              padding: isMobile ? '8px 0' : '0'
+            }}>
+              <StatsCharts 
+                reactions={reactions} 
+                duration={song.duration || 0}
+                reactionStats={reactionStats}
+              />
+            </div>
           </Card>
         )}
 
 
         {/* No Data Message */}
         {totalReactions === 0 && (!analytics || analytics.totalSessions === 0) && (
-          <Card>
-            <div style={{ textAlign: 'center', padding: '50px' }}>
-              <ExclamationCircleOutlined style={{ fontSize: 48, color: '#faad14' }} />
-              <Title level={3}>Nenhum dado disponível</Title>
-              <Text type="secondary">
+          <Card size={isMobile ? 'small' : 'default'}>
+            <div style={{ 
+              textAlign: 'center', 
+              padding: isMobile ? '30px 20px' : '50px'
+            }}>
+              <ExclamationCircleOutlined style={{ 
+                fontSize: isMobile ? 36 : 48, 
+                color: '#faad14' 
+              }} />
+              <Title level={isMobile ? 4 : 3}>
+                {isMobile ? 'Sem dados' : 'Nenhum dado disponível'}
+              </Title>
+              <Text type="secondary" style={{ 
+                fontSize: isMobile ? 14 : 16,
+                display: 'block',
+                maxWidth: isMobile ? '100%' : '400px',
+                margin: '0 auto'
+              }}>
                 Esta música ainda não recebeu reações ou reproduções.
               </Text>
             </div>

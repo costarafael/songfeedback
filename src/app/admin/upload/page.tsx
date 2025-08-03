@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import Image from 'next/image'
-import { Upload, Button, Form, Input, Card, Progress, Space, Typography, Divider, Tag, App } from 'antd'
+import { Upload, Button, Form, Input, Card, Progress, Space, Typography, Divider, Tag, App, Row, Col, Grid } from 'antd'
 import { 
   CloudUploadOutlined, 
   SoundOutlined,
@@ -14,6 +14,7 @@ import AdminLayout from '@/components/Admin/AdminLayout'
 
 const { Title, Text } = Typography
 const { Dragger } = Upload
+const { useBreakpoint } = Grid
 
 interface UploadFile {
   uid: string
@@ -35,6 +36,7 @@ export default function UploadPage() {
   const [extractedMetadata, setExtractedMetadata] = useState<any>(null)
   const [extractingMetadata, setExtractingMetadata] = useState(false)
   const router = useRouter()
+  const screens = useBreakpoint()
 
   const handleUpload = async (options: any) => {
     const { file, onSuccess, onError, onProgress } = options
@@ -216,36 +218,85 @@ export default function UploadPage() {
       title="Upload de Música"
       breadcrumbs={[{ title: 'Upload' }]}
     >
-      <div style={{ maxWidth: 800, margin: '0 auto' }}>
-        <Card>
-          <Space direction="vertical" size="large" style={{ width: '100%' }}>
-            <div style={{ textAlign: 'center' }}>
-              <Title level={3}>
-                <SoundOutlined /> Adicionar Nova Música
-              </Title>
-              <Text type="secondary">
-                Faça o upload de arquivos de áudio nos formatos MP3, WAV, M4A, AAC ou OGG
-              </Text>
-            </div>
+      <Row justify="center">
+        <Col xs={24} sm={24} md={20} lg={16} xl={14}>
+          <Card size={screens.xs ? 'small' : 'default'}>
+            <Space 
+              direction="vertical" 
+              size={screens.xs ? 'middle' : 'large'} 
+              style={{ width: '100%' }}
+            >
+              <div style={{ textAlign: 'center' }}>
+                <Title level={screens.xs ? 4 : 3}>
+                  <SoundOutlined /> Adicionar Nova Música
+                </Title>
+                <Text type="secondary" style={{ fontSize: screens.xs ? '14px' : '16px' }}>
+                  Faça o upload de arquivos de áudio nos formatos MP3, WAV, M4A, AAC ou OGG
+                </Text>
+              </div>
 
-            <Dragger {...uploadProps}>
+            <Dragger 
+              {...uploadProps}
+              style={{ 
+                padding: screens.xs ? '16px 8px' : '24px 16px',
+                minHeight: screens.xs ? '120px' : '180px'
+              }}
+            >
               {uploading || extractingMetadata ? (
                 <div>
-                  <LoadingOutlined style={{ fontSize: 48, color: '#1890ff' }} />
-                  <p>{extractingMetadata ? 'Extraindo metadados...' : 'Fazendo upload...'}</p>
-                  <Progress percent={uploadProgress} />
+                  <LoadingOutlined style={{ 
+                    fontSize: screens.xs ? 32 : 48, 
+                    color: '#1890ff' 
+                  }} />
+                  <p style={{ 
+                    fontSize: screens.xs ? '14px' : '16px',
+                    margin: screens.xs ? '8px 0 4px' : '16px 0 8px'
+                  }}>
+                    {extractingMetadata ? 'Extraindo metadados...' : 'Fazendo upload...'}
+                  </p>
+                  <Progress 
+                    percent={uploadProgress} 
+                    size={screens.xs ? 'small' : 'default'}
+                    style={{ maxWidth: screens.xs ? '200px' : '300px', margin: '0 auto' }}
+                  />
                 </div>
               ) : uploadedFile ? (
                 <div>
-                  <CheckCircleOutlined style={{ fontSize: 48, color: '#52c41a' }} />
-                  <p>Arquivo enviado com sucesso!</p>
-                  <p style={{ color: '#52c41a' }}>{uploadedFile.title}</p>
+                  <CheckCircleOutlined style={{ 
+                    fontSize: screens.xs ? 32 : 48, 
+                    color: '#52c41a' 
+                  }} />
+                  <p style={{ 
+                    fontSize: screens.xs ? '14px' : '16px',
+                    margin: screens.xs ? '8px 0 4px' : '16px 0 8px'
+                  }}>
+                    Arquivo enviado com sucesso!
+                  </p>
+                  <p style={{ 
+                    color: '#52c41a',
+                    fontSize: screens.xs ? '12px' : '14px',
+                    wordBreak: 'break-word'
+                  }}>
+                    {uploadedFile.title}
+                  </p>
                 </div>
               ) : (
                 <div>
-                  <CloudUploadOutlined style={{ fontSize: 48 }} />
-                  <p>Clique ou arraste arquivos para esta área para fazer upload</p>
-                  <p style={{ color: '#999' }}>
+                  <CloudUploadOutlined style={{ 
+                    fontSize: screens.xs ? 32 : 48 
+                  }} />
+                  <p style={{ 
+                    fontSize: screens.xs ? '14px' : '16px',
+                    margin: screens.xs ? '8px 0 4px' : '16px 0 8px',
+                    padding: screens.xs ? '0 8px' : '0 16px'
+                  }}>
+                    Clique ou arraste arquivos para esta área para fazer upload
+                  </p>
+                  <p style={{ 
+                    color: '#999',
+                    fontSize: screens.xs ? '12px' : '14px',
+                    padding: screens.xs ? '0 8px' : '0 16px'
+                  }}>
                     Suporte para upload único. Arquivos de áudio apenas.
                   </p>
                 </div>
@@ -257,25 +308,97 @@ export default function UploadPage() {
                 <Divider>Informações da Música</Divider>
                 
                 {extractedMetadata && (
-                  <Card size="small" style={{ marginBottom: 16, backgroundColor: '#f6ffed' }}>
-                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
-                      <Text strong style={{ color: '#52c41a' }}>✓ Metadados extraídos automaticamente:</Text>
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
-                        {extractedMetadata.artist && <Tag color="blue">Artista: {extractedMetadata.artist}</Tag>}
-                        {extractedMetadata.album && <Tag color="green">Álbum: {extractedMetadata.album}</Tag>}
-                        {extractedMetadata.year && <Tag color="orange">Ano: {extractedMetadata.year}</Tag>}
-                        {extractedMetadata.genre && <Tag color="purple">Gênero: {extractedMetadata.genre}</Tag>}
-                        {extractedMetadata.duration && <Tag color="cyan">Duração: {Math.floor(extractedMetadata.duration / 60)}:{(extractedMetadata.duration % 60).toString().padStart(2, '0')}</Tag>}
-                        {extractedMetadata.coverImageUrl && <Tag color="magenta">Capa extraída ✓</Tag>}
+                  <Card 
+                    size="small" 
+                    style={{ 
+                      marginBottom: screens.xs ? 12 : 16, 
+                      backgroundColor: '#f6ffed' 
+                    }}
+                  >
+                    <Space 
+                      direction="vertical" 
+                      size="small" 
+                      style={{ width: '100%' }}
+                    >
+                      <Text 
+                        strong 
+                        style={{ 
+                          color: '#52c41a',
+                          fontSize: screens.xs ? '14px' : '16px'
+                        }}
+                      >
+                        ✓ Metadados extraídos automaticamente:
+                      </Text>
+                      <div style={{ 
+                        display: 'flex', 
+                        flexWrap: 'wrap', 
+                        gap: screens.xs ? '4px' : '8px' 
+                      }}>
+                        {extractedMetadata.artist && (
+                          <Tag 
+                            color="blue" 
+                            style={{ fontSize: screens.xs ? '12px' : '14px' }}
+                          >
+                            Artista: {extractedMetadata.artist}
+                          </Tag>
+                        )}
+                        {extractedMetadata.album && (
+                          <Tag 
+                            color="green" 
+                            style={{ fontSize: screens.xs ? '12px' : '14px' }}
+                          >
+                            Álbum: {extractedMetadata.album}
+                          </Tag>
+                        )}
+                        {extractedMetadata.year && (
+                          <Tag 
+                            color="orange" 
+                            style={{ fontSize: screens.xs ? '12px' : '14px' }}
+                          >
+                            Ano: {extractedMetadata.year}
+                          </Tag>
+                        )}
+                        {extractedMetadata.genre && (
+                          <Tag 
+                            color="purple" 
+                            style={{ fontSize: screens.xs ? '12px' : '14px' }}
+                          >
+                            Gênero: {extractedMetadata.genre}
+                          </Tag>
+                        )}
+                        {extractedMetadata.duration && (
+                          <Tag 
+                            color="cyan" 
+                            style={{ fontSize: screens.xs ? '12px' : '14px' }}
+                          >
+                            Duração: {Math.floor(extractedMetadata.duration / 60)}:{(extractedMetadata.duration % 60).toString().padStart(2, '0')}
+                          </Tag>
+                        )}
+                        {extractedMetadata.coverImageUrl && (
+                          <Tag 
+                            color="magenta" 
+                            style={{ fontSize: screens.xs ? '12px' : '14px' }}
+                          >
+                            Capa extraída ✓
+                          </Tag>
+                        )}
                       </div>
                       {extractedMetadata.coverImageUrl && (
-                        <div style={{ textAlign: 'center', marginTop: 8 }}>
+                        <div style={{ 
+                          textAlign: 'center', 
+                          marginTop: screens.xs ? 6 : 8 
+                        }}>
                           <Image 
                             src={extractedMetadata.coverImageUrl} 
                             alt="Capa do álbum" 
-                            width={120}
-                            height={120}
-                            style={{ maxWidth: 120, maxHeight: 120, borderRadius: 4, objectFit: 'cover' }}
+                            width={screens.xs ? 80 : 120}
+                            height={screens.xs ? 80 : 120}
+                            style={{ 
+                              maxWidth: screens.xs ? 80 : 120, 
+                              maxHeight: screens.xs ? 80 : 120, 
+                              borderRadius: 4, 
+                              objectFit: 'cover' 
+                            }}
                           />
                         </div>
                       )}
@@ -292,50 +415,88 @@ export default function UploadPage() {
                     artist: extractedMetadata?.artist || ''
                   }}
                 >
-                  <Form.Item
-                    label="Título da Música"
-                    name="title"
-                    rules={[{ required: true, message: 'Título é obrigatório' }]}
-                  >
-                    <Input placeholder="Nome da música" />
-                  </Form.Item>
-
-                  <Form.Item
-                    label="Artista"
-                    name="artist"
-                  >
-                    <Input placeholder="Nome do artista (opcional)" />
-                  </Form.Item>
+                  <Row gutter={screens.xs ? [0, 16] : [16, 16]}>
+                    <Col xs={24} sm={24} md={12}>
+                      <Form.Item
+                        label="Título da Música"
+                        name="title"
+                        rules={[{ required: true, message: 'Título é obrigatório' }]}
+                      >
+                        <Input 
+                          placeholder="Nome da música" 
+                          size={screens.xs ? 'large' : 'middle'}
+                        />
+                      </Form.Item>
+                    </Col>
+                    <Col xs={24} sm={24} md={12}>
+                      <Form.Item
+                        label="Artista"
+                        name="artist"
+                      >
+                        <Input 
+                          placeholder="Nome do artista (opcional)" 
+                          size={screens.xs ? 'large' : 'middle'}
+                        />
+                      </Form.Item>
+                    </Col>
+                  </Row>
 
                   <Form.Item>
-                    <Space>
-                      <input
-                        type="checkbox"
-                        checked={enableTranscription}
-                        onChange={(e) => setEnableTranscription(e.target.checked)}
-                        style={{ marginRight: '8px' }}
-                      />
-                      <Text>Transcrever letra automaticamente (ElevenLabs)</Text>
+                    <Space 
+                      direction={screens.xs ? 'vertical' : 'horizontal'}
+                      align={screens.xs ? 'start' : 'center'}
+                      size={screens.xs ? 'small' : 'middle'}
+                    >
+                      <Space align="center" size="small">
+                        <input
+                          type="checkbox"
+                          checked={enableTranscription}
+                          onChange={(e) => setEnableTranscription(e.target.checked)}
+                          style={{ 
+                            marginRight: '8px',
+                            transform: screens.xs ? 'scale(1.2)' : 'scale(1)'
+                          }}
+                        />
+                        <Text style={{ fontSize: screens.xs ? '14px' : '16px' }}>
+                          Transcrever letra automaticamente (ElevenLabs)
+                        </Text>
+                      </Space>
                     </Space>
-                    <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
+                    <div style={{ 
+                      fontSize: screens.xs ? '11px' : '12px', 
+                      color: '#666', 
+                      marginTop: screens.xs ? '6px' : '4px',
+                      lineHeight: '1.4'
+                    }}>
                       A transcrição será processada após salvar e salvará a letra com timestamps
                     </div>
                   </Form.Item>
 
                   {transcriptionResult && (
                     <div style={{ 
-                      padding: '12px', 
+                      padding: screens.xs ? '10px' : '12px', 
                       backgroundColor: '#f0f9ff', 
                       border: '1px solid #bae6fd', 
                       borderRadius: '6px',
-                      marginBottom: '16px'
+                      marginBottom: screens.xs ? '12px' : '16px'
                     }}>
-                      <Text strong style={{ color: '#1e40af' }}>Letra Transcrita:</Text>
+                      <Text 
+                        strong 
+                        style={{ 
+                          color: '#1e40af',
+                          fontSize: screens.xs ? '14px' : '16px'
+                        }}
+                      >
+                        Letra Transcrita:
+                      </Text>
                       <div style={{ 
-                        fontSize: '14px', 
+                        fontSize: screens.xs ? '13px' : '14px', 
                         color: '#1e40af', 
                         whiteSpace: 'pre-wrap',
-                        marginTop: '8px'
+                        marginTop: screens.xs ? '6px' : '8px',
+                        lineHeight: '1.5',
+                        maxHeight: screens.xs ? '200px' : '300px',
+                        overflowY: 'auto'
                       }}>
                         {transcriptionResult}
                       </div>
@@ -343,11 +504,20 @@ export default function UploadPage() {
                   )}
 
                   <Form.Item>
-                    <Space>
+                    <Space 
+                      direction={screens.xs ? 'vertical' : 'horizontal'}
+                      size={screens.xs ? 'middle' : 'small'}
+                      style={{ width: screens.xs ? '100%' : 'auto' }}
+                    >
                       <Button 
                         type="primary" 
                         htmlType="submit"
                         loading={transcribing}
+                        size={screens.xs ? 'large' : 'middle'}
+                        style={{ 
+                          width: screens.xs ? '100%' : 'auto',
+                          minWidth: screens.xs ? 'auto' : '140px'
+                        }}
                       >
                         {transcribing ? 'Transcrevendo...' : 'Salvar Informações'}
                       </Button>
@@ -359,6 +529,11 @@ export default function UploadPage() {
                           setEnableTranscription(true)
                           form.resetFields()
                         }}
+                        size={screens.xs ? 'large' : 'middle'}
+                        style={{ 
+                          width: screens.xs ? '100%' : 'auto',
+                          minWidth: screens.xs ? 'auto' : '140px'
+                        }}
                       >
                         Enviar Outro Arquivo
                       </Button>
@@ -367,9 +542,10 @@ export default function UploadPage() {
                 </Form>
               </>
             )}
-          </Space>
-        </Card>
-      </div>
+            </Space>
+          </Card>
+        </Col>
+      </Row>
     </AdminLayout>
   )
 }

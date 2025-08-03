@@ -14,6 +14,7 @@ import {
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/Admin/AdminLayout'
+import { useResponsive } from '@/hooks/useResponsive'
 import { Song } from '@/lib/types'
 
 const { Title, Text } = Typography
@@ -26,6 +27,7 @@ interface DashboardStats {
 }
 
 export default function AdminDashboard() {
+  const { isMobile, isTablet, isDesktop } = useResponsive()
   const [stats, setStats] = useState<DashboardStats>({
     totalSongs: 0,
     totalPlaylists: 0,
@@ -109,83 +111,165 @@ export default function AdminDashboard() {
 
   return (
     <AdminLayout title="Dashboard">
-      {/* Statistics Cards */}
-      <Row gutter={[16, 16]} style={{ marginBottom: 24 }}>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+      {/* Welcome Message - Mobile Friendly */}
+      <div style={{ 
+        marginBottom: isMobile ? 16 : 24,
+        textAlign: isMobile ? 'center' : 'left'
+      }}>
+        <Title 
+          level={isMobile ? 3 : 2} 
+          style={{ margin: 0, marginBottom: isMobile ? 4 : 8 }}
+        >
+          Bem-vindo ao Dashboard
+        </Title>
+        <Text 
+          type="secondary" 
+          style={{ 
+            fontSize: isMobile ? 14 : 16,
+            display: 'block'
+          }}
+        >
+          Gerencie suas músicas e visualize estatísticas
+        </Text>
+      </div>
+
+      {/* Statistics Cards - Responsive */}
+      <Row gutter={[isMobile ? 8 : 16, isMobile ? 8 : 16]} style={{ marginBottom: isMobile ? 16 : 24 }}>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
             <Statistic
               title="Total de Músicas"
               value={stats.totalSongs}
               prefix={<SoundOutlined />}
               loading={loading}
+              valueStyle={{ 
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: 'bold'
+              }}
+              style={{ textAlign: 'center' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
             <Statistic
               title="Total de Playlists"
               value={stats.totalPlaylists}
               prefix={<UnorderedListOutlined />}
               loading={loading}
+              valueStyle={{ 
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: 'bold'
+              }}
+              style={{ textAlign: 'center' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
             <Statistic
               title="Total de Plays"
               value={stats.totalPlays}
               prefix={<PlayCircleOutlined />}
               loading={loading}
+              valueStyle={{ 
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: 'bold'
+              }}
+              style={{ textAlign: 'center' }}
             />
           </Card>
         </Col>
-        <Col xs={24} sm={12} lg={6}>
-          <Card>
+        <Col xs={12} sm={12} lg={6}>
+          <Card size={isMobile ? 'small' : 'default'}>
             <Statistic
               title="Ouvintes Únicos"
               value={Math.floor(stats.totalPlays * 0.7)} // Estimated unique listeners
               prefix={<UserOutlined />}
               loading={loading}
+              valueStyle={{ 
+                fontSize: isMobile ? 20 : 24,
+                fontWeight: 'bold'
+              }}
+              style={{ textAlign: 'center' }}
             />
           </Card>
         </Col>
       </Row>
 
-      <Row gutter={[16, 16]}>
-        {/* Quick Actions */}
+      <Row gutter={[isMobile ? 8 : 16, isMobile ? 8 : 16]}>
+        {/* Quick Actions - Responsive */}
         <Col xs={24} lg={12}>
-          <Card title="Ações Rápidas" style={{ height: 400 }}>
-            <Row gutter={[16, 16]}>
+          <Card 
+            title={
+              <Text 
+                strong 
+                style={{ 
+                  fontSize: isMobile ? 16 : 18 
+                }}
+              >
+                Ações Rápidas
+              </Text>
+            } 
+            size={isMobile ? 'small' : 'default'}
+            style={{ 
+              height: isMobile ? 'auto' : (isTablet ? 350 : 400),
+              marginBottom: isMobile ? 16 : 0
+            }}
+          >
+            <Row gutter={[isMobile ? 8 : 12, isMobile ? 8 : 12]}>
               {quickActions.map((action, index) => (
-                <Col xs={24} sm={12} key={index}>
+                <Col xs={12} sm={12} md={12} lg={12} key={index}>
                   <Card
                     size="small"
                     hoverable
                     onClick={action.action}
                     style={{ 
-                      height: 120,
+                      height: isMobile ? 80 : (isTablet ? 100 : 120),
                       display: 'flex',
                       flexDirection: 'column',
                       justifyContent: 'center',
                       textAlign: 'center',
-                      cursor: 'pointer'
+                      cursor: 'pointer',
+                      transition: 'all 0.3s ease'
+                    }}
+                    bodyStyle={{
+                      padding: isMobile ? '8px' : '12px',
+                      height: '100%',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center'
                     }}
                   >
                     <div style={{ 
-                      fontSize: 32, 
+                      fontSize: isMobile ? 20 : (isTablet ? 26 : 32), 
                       color: action.color, 
-                      marginBottom: 8 
+                      marginBottom: isMobile ? 4 : 8 
                     }}>
                       {action.icon}
                     </div>
                     <div>
-                      <Text strong>{action.title}</Text>
-                      <br />
-                      <Text type="secondary" style={{ fontSize: 12 }}>
-                        {action.description}
+                      <Text 
+                        strong 
+                        style={{ 
+                          fontSize: isMobile ? 11 : (isTablet ? 12 : 14)
+                        }}
+                      >
+                        {action.title}
                       </Text>
+                      {!isMobile && (
+                        <>
+                          <br />
+                          <Text 
+                            type="secondary" 
+                            style={{ 
+                              fontSize: isMobile ? 9 : (isTablet ? 10 : 12)
+                            }}
+                          >
+                            {action.description}
+                          </Text>
+                        </>
+                      )}
                     </div>
                   </Card>
                 </Col>
@@ -194,16 +278,31 @@ export default function AdminDashboard() {
           </Card>
         </Col>
 
-        {/* Recent Songs */}
+        {/* Recent Songs - Responsive */}
         <Col xs={24} lg={12}>
           <Card 
-            title="Músicas Recentes" 
-            style={{ height: 400 }}
+            title={
+              <Text 
+                strong 
+                style={{ 
+                  fontSize: isMobile ? 16 : 18 
+                }}
+              >
+                Músicas Recentes
+              </Text>
+            }
+            size={isMobile ? 'small' : 'default'}
+            style={{ 
+              height: isMobile ? 'auto' : (isTablet ? 350 : 400)
+            }}
             extra={
               <Button 
                 type="link" 
-                size="small"
+                size={isMobile ? 'small' : 'small'}
                 onClick={() => router.push('/admin/songs')}
+                style={{
+                  fontSize: isMobile ? 12 : 14
+                }}
               >
                 Ver todas
               </Button>
@@ -211,13 +310,26 @@ export default function AdminDashboard() {
           >
             {stats.recentSongs.length === 0 ? (
               <Empty
-                description="Nenhuma música encontrada"
+                description={
+                  <Text 
+                    type="secondary" 
+                    style={{ 
+                      fontSize: isMobile ? 12 : 14 
+                    }}
+                  >
+                    Nenhuma música encontrada
+                  </Text>
+                }
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
+                imageStyle={{
+                  height: isMobile ? 40 : 60
+                }}
               >
                 <Button 
                   type="primary"
                   icon={<CloudUploadOutlined />}
                   onClick={() => router.push('/admin/upload')}
+                  size={isMobile ? 'small' : 'default'}
                 >
                   Fazer Upload
                 </Button>
@@ -226,9 +338,30 @@ export default function AdminDashboard() {
               <List
                 dataSource={stats.recentSongs}
                 loading={loading}
+                size={isMobile ? 'small' : 'default'}
                 renderItem={(song) => (
                   <List.Item
-                    actions={[
+                    style={{
+                      padding: isMobile ? '8px 0' : '12px 0'
+                    }}
+                    actions={isMobile ? [
+                      <Button
+                        key="stats"
+                        type="text"
+                        size="small"
+                        icon={<BarChartOutlined />}
+                        onClick={() => router.push(`/admin/stats/${song.id}`)}
+                        style={{ fontSize: 12 }}
+                      />,
+                      <Button
+                        key="play"
+                        type="text"
+                        size="small"
+                        icon={<EyeOutlined />}
+                        onClick={() => window.open(`/player/${song.id}`, '_blank')}
+                        style={{ fontSize: 12 }}
+                      />
+                    ] : [
                       <Button
                         key="stats"
                         type="text"
@@ -253,23 +386,75 @@ export default function AdminDashboard() {
                       avatar={
                         <Avatar 
                           icon={<SoundOutlined />} 
-                          style={{ backgroundColor: '#8b5cf6' }}
+                          style={{ 
+                            backgroundColor: '#8b5cf6',
+                            width: isMobile ? 32 : 40,
+                            height: isMobile ? 32 : 40
+                          }}
                         />
                       }
                       title={
-                        <Space>
-                          <Text strong>{song.title}</Text>
+                        <Space 
+                          size="small"
+                          wrap={isMobile}
+                          style={{
+                            display: 'flex',
+                            flexDirection: isMobile ? 'column' : 'row',
+                            alignItems: isMobile ? 'flex-start' : 'center'
+                          }}
+                        >
+                          <Text 
+                            strong 
+                            style={{ 
+                              fontSize: isMobile ? 13 : 14 
+                            }}
+                          >
+                            {song.title}
+                          </Text>
                           {song.transcription_data && (
-                            <Tag color="blue">COM LETRA</Tag>
+                            <Tag 
+                              color="blue" 
+                              size="small"
+                              style={{
+                                fontSize: isMobile ? 10 : 12,
+                                marginTop: isMobile ? 2 : 0
+                              }}
+                            >
+                              COM LETRA
+                            </Tag>
                           )}
                         </Space>
                       }
                       description={
-                        <Space split={<span>•</span>} size="small">
-                          {song.artist && <Text type="secondary">{song.artist}</Text>}
-                          <Text type="secondary">{song.listen_count || 0} plays</Text>
+                        <Space 
+                          split={<span>•</span>} 
+                          size="small"
+                          wrap={isMobile}
+                          style={{
+                            fontSize: isMobile ? 11 : 12
+                          }}
+                        >
+                          {song.artist && (
+                            <Text 
+                              type="secondary"
+                              style={{ fontSize: isMobile ? 11 : 12 }}
+                            >
+                              {song.artist}
+                            </Text>
+                          )}
+                          <Text 
+                            type="secondary"
+                            style={{ fontSize: isMobile ? 11 : 12 }}
+                          >
+                            {song.listen_count || 0} plays
+                          </Text>
                           {song.duration && (
-                            <Text type="secondary">{formatDuration(song.duration)}</Text>
+                            <Text 
+                              type="secondary"
+                              style={{ fontSize: isMobile ? 11 : 12 }}
+                            >
+                              {formatDuration(song.duration)}
+                            </Text>
                           )}
                         </Space>
                       }

@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { Table, Button, Space, Tag, Typography, Input, Modal, Form, Upload, Popconfirm, App } from 'antd'
+import { Table, Button, Space, Tag, Typography, Input, Modal, Form, Upload, Popconfirm, App, Row, Col, Dropdown } from 'antd'
+import type { TableProps } from 'antd'
 import { 
   SoundOutlined, 
   DeleteOutlined, 
@@ -10,10 +11,12 @@ import {
   UploadOutlined,
   SearchOutlined,
   EditOutlined,
-  PlayCircleOutlined
+  PlayCircleOutlined,
+  MoreOutlined
 } from '@ant-design/icons'
 import { useRouter } from 'next/navigation'
 import AdminLayout from '@/components/Admin/AdminLayout'
+import { useResponsive } from '@/hooks/useResponsive'
 
 const { Title, Text } = Typography
 const { Search } = Input
@@ -36,6 +39,7 @@ interface Song {
 
 export default function SongsPage() {
   const { message } = App.useApp()
+  const { isMobile, isTablet } = useResponsive()
   const [songs, setSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
   const [searchText, setSearchText] = useState('')
@@ -138,22 +142,63 @@ export default function SongsPage() {
     (song.artist && song.artist.toLowerCase().includes(searchText.toLowerCase()))
   )
 
-  const columns = [
+  const getActionDropdown = (record: Song) => ({
+    items: [
+      {
+        key: 'player',
+        label: 'Player',
+        icon: <PlayCircleOutlined />,
+        onClick: () => window.open(`/player/${record.id}`, '_blank'),
+      },
+      {
+        key: 'edit',
+        label: 'Editar',
+        icon: <EditOutlined />,
+        onClick: () => handleEdit(record),
+      },
+      {
+        key: 'stats',
+        label: 'Estatísticas',
+        icon: <BarChartOutlined />,
+        onClick: () => router.push(`/admin/stats/${record.id}`),
+      },
+      {
+        type: 'divider' as const,
+      },
+      {
+        key: 'delete',
+        label: 'Excluir',
+        icon: <DeleteOutlined />,
+        danger: true,
+        onClick: () => {
+          Modal.confirm({
+            title: 'Excluir música',
+            content: 'Tem certeza que deseja excluir esta música?',
+            okText: 'Sim',
+            cancelText: 'Não',
+            onOk: () => handleDelete(record.id),
+          })
+        },
+      },
+    ],
+  })
+
+  const columns: TableProps<Song>['columns'] = [
     {
       title: 'Música',
       dataIndex: 'title',
       key: 'title',
       render: (text: string, record: Song) => (
-        <Space size="middle">
+        <Space size={isMobile ? "small" : "middle"}>
           {record.cover_image_url && (
             <Image 
               src={record.cover_image_url} 
               alt={`Capa de ${text}`}
-              width={40}
-              height={40}
+              width={isMobile ? 32 : 40}
+              height={isMobile ? 32 : 40}
               style={{ 
-                width: 40, 
-                height: 40, 
+                width: isMobile ? 32 : 40, 
+                height: isMobile ? 32 : 40, 
                 borderRadius: 4, 
                 objectFit: 'cover',
                 border: '1px solid #d9d9d9'
@@ -161,80 +206,111 @@ export default function SongsPage() {
             />
           )}
           <Space direction="vertical" size="small">
-            <Text strong>{text}</Text>
-            {record.artist && <Text type="secondary">{record.artist}</Text>}
-            <Space size="small">
-              {record.album && <Tag color="green" style={{ fontSize: '11px' }}>{record.album}</Tag>}
-              {record.year && <Tag color="blue" style={{ fontSize: '11px' }}>{record.year}</Tag>}
-              {record.genre && <Tag color="purple" style={{ fontSize: '11px' }}>{record.genre}</Tag>}
-              {record.transcription_data && <Tag color="orange" style={{ fontSize: '11px' }}>COM LETRA</Tag>}
-            </Space>
+            <Text strong={!isMobile} style={{ fontSize: isMobile ? 14 : undefined }}>
+              {text}
+            </Text>
+            {record.artist && (
+              <Text type="secondary" style={{ fontSize: isMobile ? 12 : undefined }}>
+                {record.artist}
+              </Text>
+            )}
+            {!isMobile && (
+              <Space size="small" wrap>
+                {record.album && <Tag color="green" style={{ fontSize: '11px' }}>{record.album}</Tag>}
+                {record.year && <Tag color="blue" style={{ fontSize: '11px' }}>{record.year}</Tag>}
+                {record.genre && <Tag color="purple" style={{ fontSize: '11px' }}>{record.genre}</Tag>}
+                {record.transcription_data && <Tag color="orange" style={{ fontSize: '11px' }}>COM LETRA</Tag>}
+              </Space>
+            )}
+            {isMobile && record.duration && (
+              <Text type="secondary" style={{ fontSize: 11 }}>
+                {formatDuration(record.duration)}
+              </Text>
+            )}
           </Space>
         </Space>
       ),
     },
-    {
-      title: 'Duração',
-      dataIndex: 'duration',
-      key: 'duration',
-      render: (duration: number) => formatDuration(duration),
-      width: 100,
-    },
-    {
-      title: 'Criado em',
-      dataIndex: 'created_at',
-      key: 'created_at',
-      render: (date: string) => new Date(date).toLocaleDateString('pt-BR'),
-      width: 120,
-    },
+    ...(!isMobile ? [
+      {
+        title: 'Duração',
+        dataIndex: 'duration',
+        key: 'duration',
+        render: (duration: number) => formatDuration(duration),
+        width: 100,
+        responsive: ['sm' as const],
+      },
+      {
+        title: 'Criado em',
+        dataIndex: 'created_at',
+        key: 'created_at',
+        render: (date: string) => new Date(date).toLocaleDateString('pt-BR'),
+        width: 120,
+        responsive: ['md' as const],
+      }
+    ] : []),
     {
       title: 'Ações',
       key: 'actions',
-      width: 200,
+      width: isMobile ? 60 : 200,
       render: (_: any, record: Song) => (
-        <Space>
-          <Button
-            type="text"
-            icon={<PlayCircleOutlined />}
-            onClick={() => window.open(`/player/${record.id}`, '_blank')}
-            size="small"
-            title="Ouvir no Player"
-          >
-            Player
-          </Button>
-          <Button
-            type="text"
-            icon={<EditOutlined />}
-            onClick={() => handleEdit(record)}
-            size="small"
-          >
-            Editar
-          </Button>
-          <Button
-            type="text"
-            icon={<BarChartOutlined />}
-            onClick={() => router.push(`/admin/stats/${record.id}`)}
-            size="small"
-          >
-            Stats
-          </Button>
-          <Popconfirm
-            title="Excluir música"
-            description="Tem certeza que deseja excluir esta música?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Sim"
-            cancelText="Não"
+        isMobile ? (
+          <Dropdown
+            menu={getActionDropdown(record)}
+            trigger={['click']}
+            placement="bottomRight"
           >
             <Button
               type="text"
-              danger
-              icon={<DeleteOutlined />}
+              icon={<MoreOutlined />}
+              size="small"
+            />
+          </Dropdown>
+        ) : (
+          <Space>
+            <Button
+              type="text"
+              icon={<PlayCircleOutlined />}
+              onClick={() => window.open(`/player/${record.id}`, '_blank')}
+              size="small"
+              title="Ouvir no Player"
+            >
+              Player
+            </Button>
+            <Button
+              type="text"
+              icon={<EditOutlined />}
+              onClick={() => handleEdit(record)}
               size="small"
             >
-              Excluir
+              Editar
             </Button>
-          </Popconfirm>
-        </Space>
+            <Button
+              type="text"
+              icon={<BarChartOutlined />}
+              onClick={() => router.push(`/admin/stats/${record.id}`)}
+              size="small"
+            >
+              Stats
+            </Button>
+            <Popconfirm
+              title="Excluir música"
+              description="Tem certeza que deseja excluir esta música?"
+              onConfirm={() => handleDelete(record.id)}
+              okText="Sim"
+              cancelText="Não"
+            >
+              <Button
+                type="text"
+                danger
+                icon={<DeleteOutlined />}
+                size="small"
+              >
+                Excluir
+              </Button>
+            </Popconfirm>
+          </Space>
+        )
       ),
     },
   ]
@@ -244,37 +320,46 @@ export default function SongsPage() {
       title="Gestão de Músicas"
       breadcrumbs={[{ title: 'Músicas' }]}
     >
-      <div style={{ marginBottom: 16 }}>
-        <Space>
+      <Row gutter={[16, 16]} style={{ marginBottom: 16 }}>
+        <Col xs={24} sm={16} md={12} lg={8}>
           <Search
             placeholder="Buscar por título ou artista..."
             allowClear
-            style={{ width: 300 }}
+            style={{ width: '100%' }}
             onSearch={setSearchText}
             onChange={(e) => setSearchText(e.target.value)}
+            size={isMobile ? 'large' : 'middle'}
           />
+        </Col>
+        <Col xs={24} sm={8} md={12} lg={16} style={{ textAlign: isMobile ? 'left' : 'right' }}>
           <Button 
             type="primary" 
             icon={<UploadOutlined />}
             onClick={() => router.push('/admin/upload')}
+            block={isMobile}
+            size={isMobile ? 'large' : 'middle'}
           >
             Nova Música
           </Button>
-        </Space>
-      </div>
+        </Col>
+      </Row>
 
       <Table
         dataSource={filteredSongs}
         columns={columns}
         rowKey="id"
         loading={loading}
+        scroll={{ x: 'max-content' }}
         pagination={{
-          pageSize: 20,
-          showSizeChanger: true,
-          showQuickJumper: true,
-          showTotal: (total, range) => 
-            `${range[0]}-${range[1]} de ${total} músicas`,
+          pageSize: isMobile ? 10 : 20,
+          showSizeChanger: !isMobile,
+          showQuickJumper: !isMobile,
+          simple: isMobile,
+          showTotal: !isMobile ? (total, range) => 
+            `${range[0]}-${range[1]} de ${total} músicas` : undefined,
         }}
+        size={isMobile ? 'small' : 'middle'}
+        style={{ background: '#fff' }}
       />
 
       <Modal
@@ -284,6 +369,8 @@ export default function SongsPage() {
         onCancel={() => setEditingId(null)}
         okText="Salvar"
         cancelText="Cancelar"
+        width={isMobile ? '95vw' : 520}
+        style={isMobile ? { top: 20 } : {}}
       >
         <Form form={form} layout="vertical">
           <Form.Item
