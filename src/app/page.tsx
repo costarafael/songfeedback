@@ -93,12 +93,12 @@ export default function Home() {
                       
                       <div className="flex items-center space-x-4 text-sm" style={getTextStyles('secondary')}>
                         {song.artist && (
-                          <span>por {song.artist}</span>
+                          <>
+                            <span>por {song.artist}</span>
+                            <span>•</span>
+                          </>
                         )}
-                        <span>•</span>
                         <span>{formatDuration(song.duration)}</span>
-                        <span>•</span>
-                        <span>{song.listen_count || 0} reproduções</span>
                       </div>
                     </div>
                     
@@ -116,16 +116,6 @@ export default function Home() {
             </div>
           )}
 
-          {/* Admin Link */}
-          <div className="text-center mt-12 pt-8 border-t border-purple-500/20">
-            <Link 
-              href="/admin" 
-              className="inline-flex items-center px-4 py-2 text-sm font-medium"
-              style={getButtonStyles(false, 'small')}
-            >
-              Painel Administrativo
-            </Link>
-          </div>
         </div>
       </div>
     </FixedThemePlayerWrapper>
