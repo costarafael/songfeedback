@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Play } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Song } from '@/lib/types'
@@ -89,9 +90,11 @@ export default function Home() {
                     <div className="flex items-center space-x-4 flex-1 min-w-0">
                       {song.cover_image_url && (
                         <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
-                          <img 
+                          <Image 
                             src={song.cover_image_url} 
                             alt={`Capa de ${song.title}`}
+                            width={64}
+                            height={64}
                             className="w-full h-full object-cover"
                           />
                         </div>

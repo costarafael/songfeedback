@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { Table, Button, Space, Tag, Typography, Input, Modal, Form, Upload, Popconfirm, App } from 'antd'
 import { 
   SoundOutlined, 
@@ -21,10 +22,16 @@ interface Song {
   id: string
   title: string
   artist?: string
+  album?: string
+  year?: number
+  genre?: string
   duration?: number
   created_at: string
   transcription_data?: any
   file_url?: string
+  cover_image_url?: string
+  cover_image_key?: string
+  metadata?: any
 }
 
 export default function SongsPage() {
@@ -38,7 +45,7 @@ export default function SongsPage() {
 
   useEffect(() => {
     fetchSongs()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchSongs = async () => {
     try {
@@ -139,9 +146,11 @@ export default function SongsPage() {
       render: (text: string, record: Song) => (
         <Space size="middle">
           {record.cover_image_url && (
-            <img 
+            <Image 
               src={record.cover_image_url} 
               alt={`Capa de ${text}`}
+              width={40}
+              height={40}
               style={{ 
                 width: 40, 
                 height: 40, 

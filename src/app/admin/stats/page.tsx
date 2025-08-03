@@ -46,7 +46,7 @@ export default function StatsOverviewPage() {
 
   useEffect(() => {
     fetchStats()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchStats = async () => {
     try {

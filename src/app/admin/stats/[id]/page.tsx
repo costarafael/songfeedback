@@ -114,7 +114,7 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
     }
 
     loadData()
-  }, [params])
+  }, [params]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (loading) {
     return (

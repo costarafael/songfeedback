@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { FileText, X } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Song, Reaction, ReactionType } from '@/lib/types'
@@ -179,9 +180,11 @@ export default function PlayerPage() {
           <div className="flex flex-col items-center space-y-4">
             {song.cover_image_url && (
               <div className="w-48 h-48 rounded-lg shadow-lg overflow-hidden">
-                <img 
+                <Image 
                   src={song.cover_image_url} 
                   alt={`Capa de ${song.title}`}
+                  width={192}
+                  height={192}
                   className="w-full h-full object-cover"
                 />
               </div>

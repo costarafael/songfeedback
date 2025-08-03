@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
+import Image from 'next/image'
 import { Upload, Button, Form, Input, Card, Progress, Space, Typography, Divider, Tag, App } from 'antd'
 import { 
   CloudUploadOutlined, 
@@ -269,10 +270,12 @@ export default function UploadPage() {
                       </div>
                       {extractedMetadata.coverImageUrl && (
                         <div style={{ textAlign: 'center', marginTop: 8 }}>
-                          <img 
+                          <Image 
                             src={extractedMetadata.coverImageUrl} 
                             alt="Capa do álbum" 
-                            style={{ maxWidth: 120, maxHeight: 120, borderRadius: 4 }}
+                            width={120}
+                            height={120}
+                            style={{ maxWidth: 120, maxHeight: 120, borderRadius: 4, objectFit: 'cover' }}
                           />
                         </div>
                       )}

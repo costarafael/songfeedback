@@ -6,6 +6,17 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '20mb' // Aumentar limite para uploads de áudio
     }
   },
+  // Configure allowed image domains for Next.js Image component
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'sosmwuvshpxyhylzsiis.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/public/**',
+      },
+    ],
+  },
   // Increase API route body size limit
   async rewrites() {
     return []

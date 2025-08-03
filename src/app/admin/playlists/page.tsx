@@ -206,7 +206,7 @@ export default function PlaylistsPage() {
   useEffect(() => {
     fetchPlaylists()
     fetchSongs()
-  }, [])
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const fetchPlaylists = async () => {
     try {

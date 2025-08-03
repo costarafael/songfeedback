@@ -43,9 +43,12 @@ export function useReactionVisuals({
       console.warn('Regions plugin already initialized or error:', error)
     }
 
+    // Store current regions ref value in cleanup closure
+    const regionsToCleanup = regionsRef.current
     return () => {
-      const regions = regionsRef.current
-      regions?.clear()
+      if (regionsToCleanup) {
+        regionsToCleanup.clear()
+      }
     }
   }, [wavesurfer])
 
