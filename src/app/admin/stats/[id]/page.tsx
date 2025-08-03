@@ -141,18 +141,27 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
   const reactionStats = processReactionStats(reactions)
   const totalReactions = reactions.length
 
-  const reactionEmojis = {
-    love: '❤️',
-    like: '👍',
-    dislike: '👎',
-    angry: '😠'
-  }
-
-  const reactionLabels = {
-    love: 'Amei',
-    like: 'Gostei',
-    dislike: 'Não gostei',
-    angry: 'Descontente'
+  const reactionConfig = {
+    love: {
+      icon: '❤️',
+      label: 'Amei',
+      color: '#ff4d4f'
+    },
+    like: {
+      icon: '👍',
+      label: 'Gostei', 
+      color: '#52c41a'
+    },
+    dislike: {
+      icon: '👎',
+      label: 'Não gostei',
+      color: '#faad14'
+    },
+    angry: {
+      icon: '😠',
+      label: 'Descontente',
+      color: '#8c8c8c'
+    }
   }
 
   return (
@@ -240,16 +249,19 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
               {reactionStats.map((stat) => {
                 const percentage = totalReactions > 0 ? (stat.count / totalReactions * 100).toFixed(1) : '0'
                 
+                const config = reactionConfig[stat.reaction_type as keyof typeof reactionConfig]
+                
                 return (
                   <Col xs={12} sm={6} key={stat.reaction_type}>
                     <Card size="small" style={{ textAlign: 'center' }}>
                       <div style={{ fontSize: 32, marginBottom: 8 }}>
-                        {reactionEmojis[stat.reaction_type as keyof typeof reactionEmojis]}
+                        {config.icon}
                       </div>
                       <Statistic
-                        title={reactionLabels[stat.reaction_type as keyof typeof reactionLabels]}
+                        title={config.label}
                         value={stat.count}
                         suffix={<span style={{ fontSize: 12 }}>({percentage}%)</span>}
+                        valueStyle={{ color: config.color }}
                       />
                     </Card>
                   </Col>
@@ -297,21 +309,26 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
           <Card>
             <Title level={4}>Reações Recentes</Title>
             <Timeline>
-              {reactions.slice(-10).reverse().map((reaction) => (
-                <Timeline.Item 
-                  key={reaction.id}
-                  dot={<span style={{ fontSize: 16 }}>{reactionEmojis[reaction.reaction_type]}</span>}
-                >
-                  <Space>
-                    <Text strong>
-                      {reactionLabels[reaction.reaction_type]}
-                    </Text>
-                    <Text type="secondary">
-                      em {formatTime(reaction.timestamp)}
-                    </Text>
-                  </Space>
-                </Timeline.Item>
-              ))}
+              {reactions.slice(-10).reverse().map((reaction) => {
+                const config = reactionConfig[reaction.reaction_type as keyof typeof reactionConfig]
+                
+                return (
+                  <Timeline.Item 
+                    key={reaction.id}
+                    dot={<span style={{ fontSize: 16 }}>{config.icon}</span>}
+                    color={config.color}
+                  >
+                    <Space>
+                      <Text strong>
+                        {config.label}
+                      </Text>
+                      <Text type="secondary">
+                        em {formatTime(reaction.timestamp)}
+                      </Text>
+                    </Space>
+                  </Timeline.Item>
+                )
+              })}
             </Timeline>
           </Card>
         )}

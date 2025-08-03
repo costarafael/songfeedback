@@ -1,6 +1,18 @@
 'use client'
 
+import { Card, Typography, Row, Col, Progress, Tooltip, Space, Tag } from 'antd'
+import { 
+  HeartFilled, 
+  LikeFilled, 
+  DislikeFilled, 
+  FrownFilled,
+  ClockCircleOutlined,
+  BarChartOutlined,
+  ThunderboltOutlined
+} from '@ant-design/icons'
 import { Reaction, ReactionStats } from '@/lib/types'
+
+const { Title, Text } = Typography
 
 interface StatsChartsProps {
   reactions: Reaction[]
@@ -47,149 +59,227 @@ export default function StatsCharts({ reactions, duration, reactionStats }: Stat
 
   const maxCount = Math.max(...segmentCounts.map(s => s.total))
   
-  const reactionColors = {
-    love: '#22c55e', // green-500
-    like: '#3b82f6', // blue-500  
-    dislike: '#eab308', // yellow-500
-    angry: '#6b7280' // gray-500
-  }
-
-  const reactionEmojis = {
-    love: '❤️',
-    like: '👍',
-    dislike: '👎',
-    angry: '😠'
+  const reactionConfig = {
+    love: {
+      color: '#ff4d4f',
+      icon: HeartFilled,
+      label: 'Amei'
+    },
+    like: {
+      color: '#52c41a', 
+      icon: LikeFilled,
+      label: 'Gostei'
+    },
+    dislike: {
+      color: '#faad14',
+      icon: DislikeFilled, 
+      label: 'Não gostei'
+    },
+    angry: {
+      color: '#8c8c8c',
+      icon: FrownFilled,
+      label: 'Descontente'
+    }
   }
 
   return (
-    <div className="space-y-6">
+    <Space direction="vertical" size="large" style={{ width: '100%' }}>
       {/* Debug Info */}
-      <div className="bg-gray-100 p-4 rounded-lg text-sm">
-        <h4 className="font-semibold mb-2">Timeline Analysis:</h4>
-        <div className="grid grid-cols-3 gap-4">
-          <div>
-            <strong>Duração salva:</strong> {duration ? `${duration}s` : 'Não definida'}
-          </div>
-          <div>
-            <strong>Última reação:</strong> {maxReactionTime.toFixed(1)}s
-          </div>
-          <div>
-            <strong>Duração calculada:</strong> {safeDuration}s
-          </div>
-          <div>
-            <strong>Total reações:</strong> {reactions.length}
-          </div>
-          <div>
-            <strong>Segmentos ativos:</strong> {segmentCounts.filter(s => s.total > 0).length}/{timelineSegments}
-          </div>
-          <div>
-            <strong>Resolução:</strong> {segmentDuration.toFixed(1)}s/segmento
-          </div>
-        </div>
+      <Card size="small" title={
+        <Space>
+          <BarChartOutlined />
+          <Text strong>Análise da Timeline</Text>
+        </Space>
+      }>
+        <Row gutter={[16, 16]}>
+          <Col xs={24} sm={12} md={8}>
+            <Tag icon={<ClockCircleOutlined />} color="blue">
+              Duração: {duration ? `${duration}s` : 'Não definida'}
+            </Tag>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Tag icon={<ThunderboltOutlined />} color="volcano">
+              Última reação: {maxReactionTime.toFixed(1)}s
+            </Tag>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Tag color="green">
+              Duração calculada: {safeDuration}s
+            </Tag>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Tag color="purple">
+              Total reações: {reactions.length}
+            </Tag>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Tag color="cyan">
+              Segmentos ativos: {segmentCounts.filter(s => s.total > 0).length}/{timelineSegments}
+            </Tag>
+          </Col>
+          <Col xs={24} sm={12} md={8}>
+            <Tag color="orange">
+              Resolução: {segmentDuration.toFixed(1)}s/segmento
+            </Tag>
+          </Col>
+        </Row>
         {reactions.length > 0 && (
-          <div className="mt-2">
-            <strong>Range de reações:</strong> 
-            {Math.min(...reactions.map(r => r.timestamp)).toFixed(1)}s - 
-            {Math.max(...reactions.map(r => r.timestamp)).toFixed(1)}s
+          <div style={{ marginTop: 16 }}>
+            <Text type="secondary">
+              <strong>Range de reações:</strong> {' '}
+              {Math.min(...reactions.map(r => r.timestamp)).toFixed(1)}s - {' '}
+              {Math.max(...reactions.map(r => r.timestamp)).toFixed(1)}s
+            </Text>
           </div>
         )}
-      </div>
+      </Card>
 
       {/* Timeline Heatmap */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Intensidade de Reações ao Longo do Tempo</h3>
-        <div className="border rounded-lg p-4">
-          <div className="flex items-end space-x-1 h-32">
+      <Card title={
+        <Space>
+          <BarChartOutlined />
+          <Text strong>Intensidade de Reações ao Longo do Tempo</Text>
+        </Space>
+      }>
+        <div style={{ padding: 16, backgroundColor: '#fafafa', borderRadius: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 2, height: 120 }}>
             {segmentCounts.map((segment, index) => {
               const height = maxCount > 0 ? (segment.total / maxCount) * 100 : 0
               const timeInSong = (index * segmentDuration)
               const timeLabel = `${Math.floor(timeInSong / 60)}:${Math.floor(timeInSong % 60).toString().padStart(2, '0')}`
               
-              return (
-                <div
-                  key={index}
-                  className="flex-1 bg-blue-200 hover:bg-blue-300 transition-colors cursor-pointer relative group"
-                  style={{ height: `${height}%`, minHeight: '2px' }}
-                  title={`${timeLabel} - ${segment.total} reações`}
-                >
-                  {segment.total > 0 && (
-                    <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 bg-black text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                      <div>{timeLabel}</div>
-                      <div>{segment.total} reações</div>
-                      {segment.love > 0 && <div>❤️ {segment.love}</div>}
-                      {segment.like > 0 && <div>👍 {segment.like}</div>}
-                      {segment.dislike > 0 && <div>👎 {segment.dislike}</div>}
-                      {segment.angry > 0 && <div>😠 {segment.angry}</div>}
+              const tooltipContent = (
+                <div>
+                  <div><strong>{timeLabel}</strong></div>
+                  <div>{segment.total} reações</div>
+                  {segment.love > 0 && (
+                    <div style={{ color: reactionConfig.love.color }}>
+                      <HeartFilled /> {segment.love}
+                    </div>
+                  )}
+                  {segment.like > 0 && (
+                    <div style={{ color: reactionConfig.like.color }}>
+                      <LikeFilled /> {segment.like}
+                    </div>
+                  )}
+                  {segment.dislike > 0 && (
+                    <div style={{ color: reactionConfig.dislike.color }}>
+                      <DislikeFilled /> {segment.dislike}
+                    </div>
+                  )}
+                  {segment.angry > 0 && (
+                    <div style={{ color: reactionConfig.angry.color }}>
+                      <FrownFilled /> {segment.angry}
                     </div>
                   )}
                 </div>
+              )
+              
+              return (
+                <Tooltip key={index} title={tooltipContent} placement="top">
+                  <div
+                    style={{
+                      flex: 1,
+                      height: `${height}%`,
+                      minHeight: 4,
+                      backgroundColor: '#1890ff',
+                      borderRadius: 2,
+                      cursor: 'pointer',
+                      transition: 'all 0.3s',
+                      opacity: segment.total > 0 ? 1 : 0.3
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = '#40a9ff'
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = '#1890ff'
+                    }}
+                  />
+                </Tooltip>
               )
             })}
           </div>
           
           {/* Time labels */}
-          <div className="flex justify-between text-xs text-gray-500 mt-2">
-            <span>0:00</span>
-            <span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
+            <Text type="secondary" style={{ fontSize: 12 }}>0:00</Text>
+            <Text type="secondary" style={{ fontSize: 12 }}>
               {Math.floor(safeDuration / 60)}:{(Math.floor(safeDuration % 60)).toString().padStart(2, '0')}
-            </span>
+            </Text>
           </div>
         </div>
-      </div>
+      </Card>
 
       {/* Reaction Distribution by Time */}
-      <div>
-        <h3 className="text-lg font-semibold mb-4">Distribuição por Tipo de Reação</h3>
-        <div className="space-y-4">
-          {reactionStats.map((stat) => (
-            <div key={stat.reaction_type} className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center space-x-2">
-                  <span className="text-xl">{reactionEmojis[stat.reaction_type]}</span>
-                  <span className="font-medium capitalize">
-                    {stat.reaction_type === 'love' ? 'Amei' :
-                     stat.reaction_type === 'like' ? 'Gostei' :
-                     stat.reaction_type === 'dislike' ? 'Não gostei' : 'Descontente'}
-                  </span>
-                  <span className="text-sm text-gray-600">({stat.count} reações)</span>
-                </div>
-              </div>
-              
-              {/* Timeline for this reaction type */}
-              <div className="flex space-x-1 h-8">
-                {segmentCounts.map((segment, index) => {
-                  const count = segment[stat.reaction_type]
-                  const opacity = count > 0 ? Math.min(count / 3, 1) : 0 // Max opacity at 3+ reactions
-                  const timeInSong = index * segmentDuration
-                  const timeLabel = `${Math.floor(timeInSong / 60)}:${Math.floor(timeInSong % 60).toString().padStart(2, '0')}`
+      <Card title={
+        <Space>
+          <HeartFilled style={{ color: '#ff4d4f' }} />
+          <Text strong>Distribuição por Tipo de Reação</Text>
+        </Space>
+      }>
+        <Row gutter={[0, 16]}>
+          {reactionStats.map((stat) => {
+            const config = reactionConfig[stat.reaction_type]
+            const IconComponent = config.icon
+            const percentage = reactions.length > 0 ? ((stat.count / reactions.length) * 100).toFixed(1) : '0'
+            
+            return (
+              <Col xs={24} key={stat.reaction_type}>
+                <Card size="small" style={{ backgroundColor: '#fafafa' }}>
+                  <div style={{ marginBottom: 12 }}>
+                    <Space>
+                      <IconComponent style={{ color: config.color, fontSize: 20 }} />
+                      <Text strong>{config.label}</Text>
+                      <Tag color={config.color.includes('#ff') ? 'red' : config.color.includes('#52') ? 'green' : config.color.includes('#fa') ? 'orange' : 'default'}>
+                        {stat.count} reações ({percentage}%)
+                      </Tag>
+                    </Space>
+                  </div>
                   
-                  return (
-                    <div
-                      key={index}
-                      className="flex-1 rounded-sm transition-all cursor-pointer"
-                      style={{
-                        backgroundColor: reactionColors[stat.reaction_type],
-                        opacity: opacity
-                      }}
-                      title={count > 0 ? `${timeLabel} - ${count} reação(ões)` : `${timeLabel} - sem reações`}
-                    />
-                  )
-                })}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
+                  {/* Timeline for this reaction type */}
+                  <div style={{ display: 'flex', gap: 1, height: 32, alignItems: 'flex-end' }}>
+                    {segmentCounts.map((segment, index) => {
+                      const count = segment[stat.reaction_type]
+                      const opacity = count > 0 ? Math.min(count / 3, 1) : 0.1 // Max opacity at 3+ reactions
+                      const timeInSong = index * segmentDuration
+                      const timeLabel = `${Math.floor(timeInSong / 60)}:${Math.floor(timeInSong % 60).toString().padStart(2, '0')}`
+                      
+                      return (
+                        <Tooltip 
+                          key={index}
+                          title={count > 0 ? `${timeLabel} - ${count} reação(ões)` : `${timeLabel} - sem reações`}
+                        >
+                          <div
+                            style={{
+                              flex: 1,
+                              height: '100%',
+                              backgroundColor: config.color,
+                              opacity: opacity,
+                              borderRadius: 2,
+                              cursor: 'pointer',
+                              transition: 'all 0.3s'
+                            }}
+                          />
+                        </Tooltip>
+                      )
+                    })}
+                  </div>
+                </Card>
+              </Col>
+            )
+          })}
+        </Row>
+      </Card>
 
       {/* Legend */}
-      <div className="text-sm text-gray-600">
-        <p><strong>Como ler os gráficos:</strong></p>
-        <ul className="list-disc list-inside space-y-1 mt-2">
-          <li>A altura das barras no primeiro gráfico representa a quantidade total de reações</li>
-          <li>A intensidade das cores nos gráficos por tipo mostra a concentração de cada reação</li>
-          <li>Passe o mouse sobre as barras para ver detalhes específicos</li>
-        </ul>
-      </div>
-    </div>
+      <Card size="small" title="Como interpretar os gráficos">
+        <Space direction="vertical" size="small">
+          <Text>• A altura das barras no gráfico principal representa a quantidade total de reações</Text>
+          <Text>• A intensidade das cores nos gráficos por tipo mostra a concentração de cada reação</Text>
+          <Text>• Passe o mouse sobre as barras para ver detalhes específicos de tempo e contagem</Text>
+          <Text>• Segmentos mais opacos indicam maior concentração de reações naquele momento</Text>
+        </Space>
+      </Card>
+    </Space>
   )
 }
