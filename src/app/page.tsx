@@ -86,19 +86,42 @@ export default function Home() {
                   style={getPanelStyles()}
                 >
                   <div className="flex items-center justify-between">
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-xl font-semibold mb-1 truncate" style={getTextStyles('primary')}>
-                        {song.title}
-                      </h3>
-                      
-                      <div className="flex items-center space-x-4 text-sm" style={getTextStyles('secondary')}>
-                        {song.artist && (
-                          <>
-                            <span>por {song.artist}</span>
-                            <span>•</span>
-                          </>
-                        )}
-                        <span>{formatDuration(song.duration)}</span>
+                    <div className="flex items-center space-x-4 flex-1 min-w-0">
+                      {song.cover_image_url && (
+                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0">
+                          <img 
+                            src={song.cover_image_url} 
+                            alt={`Capa de ${song.title}`}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-xl font-semibold mb-1 truncate" style={getTextStyles('primary')}>
+                          {song.title}
+                        </h3>
+                        
+                        <div className="flex items-center space-x-4 text-sm" style={getTextStyles('secondary')}>
+                          {song.artist && (
+                            <>
+                              <span>por {song.artist}</span>
+                              <span>•</span>
+                            </>
+                          )}
+                          {song.album && (
+                            <>
+                              <span>{song.album}</span>
+                              <span>•</span>
+                            </>
+                          )}
+                          <span>{formatDuration(song.duration)}</span>
+                          {song.year && (
+                            <>
+                              <span>•</span>
+                              <span>{song.year}</span>
+                            </>
+                          )}
+                        </div>
                       </div>
                     </div>
                     

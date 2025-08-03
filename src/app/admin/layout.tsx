@@ -1,7 +1,7 @@
 'use client'
 
 import { AntdRegistry } from '@ant-design/nextjs-registry'
-import { ConfigProvider } from 'antd'
+import { ConfigProvider, App } from 'antd'
 import ptBR from 'antd/locale/pt_BR'
 
 export default function AdminLayout({
@@ -34,7 +34,9 @@ export default function AdminLayout({
           },
         }}
       >
-        {children}
+        <App>
+          {children}
+        </App>
       </ConfigProvider>
     </AntdRegistry>
   )

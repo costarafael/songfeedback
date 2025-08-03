@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Table, Button, Space, Tag, Typography, Input, Modal, Form, message, Upload, Popconfirm } from 'antd'
+import { Table, Button, Space, Tag, Typography, Input, Modal, Form, Upload, Popconfirm, App } from 'antd'
 import { 
   SoundOutlined, 
   DeleteOutlined, 
@@ -28,6 +28,7 @@ interface Song {
 }
 
 export default function SongsPage() {
+  const { message } = App.useApp()
   const [songs, setSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)
   const [searchText, setSearchText] = useState('')
@@ -136,12 +137,30 @@ export default function SongsPage() {
       dataIndex: 'title',
       key: 'title',
       render: (text: string, record: Song) => (
-        <Space direction="vertical" size="small">
-          <Text strong>{text}</Text>
-          {record.artist && <Text type="secondary">{record.artist}</Text>}
-          {record.transcription_data && (
-            <Tag color="blue">COM LETRA</Tag>
+        <Space size="middle">
+          {record.cover_image_url && (
+            <img 
+              src={record.cover_image_url} 
+              alt={`Capa de ${text}`}
+              style={{ 
+                width: 40, 
+                height: 40, 
+                borderRadius: 4, 
+                objectFit: 'cover',
+                border: '1px solid #d9d9d9'
+              }}
+            />
           )}
+          <Space direction="vertical" size="small">
+            <Text strong>{text}</Text>
+            {record.artist && <Text type="secondary">{record.artist}</Text>}
+            <Space size="small">
+              {record.album && <Tag color="green" style={{ fontSize: '11px' }}>{record.album}</Tag>}
+              {record.year && <Tag color="blue" style={{ fontSize: '11px' }}>{record.year}</Tag>}
+              {record.genre && <Tag color="purple" style={{ fontSize: '11px' }}>{record.genre}</Tag>}
+              {record.transcription_data && <Tag color="orange" style={{ fontSize: '11px' }}>COM LETRA</Tag>}
+            </Space>
+          </Space>
         </Space>
       ),
     },

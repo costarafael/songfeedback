@@ -35,7 +35,18 @@ export async function GET() {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
-    const { title, artist, file_url } = body
+    const { 
+      title, 
+      artist, 
+      file_url, 
+      duration,
+      album,
+      year,
+      genre,
+      cover_image_url,
+      cover_image_key,
+      metadata
+    } = body
 
     if (!title || !file_url) {
       return NextResponse.json(
@@ -50,6 +61,13 @@ export async function POST(request: Request) {
         title,
         artist: artist || null,
         file_url,
+        duration: duration || null,
+        album: album || null,
+        year: year || null,
+        genre: genre || null,
+        cover_image_url: cover_image_url || null,
+        cover_image_key: cover_image_key || null,
+        metadata: metadata || null,
         upload_date: new Date().toISOString(),
         listen_count: 0
       }])

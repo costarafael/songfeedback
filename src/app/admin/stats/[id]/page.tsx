@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Row, Col, Statistic, Typography, Space, Tag, Progress, Timeline, message } from 'antd'
+import { Card, Row, Col, Statistic, Typography, Space, Tag, Progress, Timeline, App } from 'antd'
 import { 
   SoundOutlined, 
   EyeOutlined,
@@ -69,6 +69,7 @@ function processReactionStats(reactions: Reaction[]): ReactionStats[] {
 }
 
 export default function SongStatsPage({ params }: { params: Promise<{ id: string }> }) {
+  const { message } = App.useApp()
   const [song, setSong] = useState<Song | null>(null)
   const [reactions, setReactions] = useState<Reaction[]>([])
   const [analytics, setAnalytics] = useState<AnalyticsData | null>(null)

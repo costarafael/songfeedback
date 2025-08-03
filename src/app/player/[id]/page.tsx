@@ -175,6 +175,36 @@ export default function PlayerPage() {
       <div className="container mx-auto px-4 py-8">
 
         <div className="flex flex-col items-center space-y-8">
+          {/* Song Info with Cover */}
+          <div className="flex flex-col items-center space-y-4">
+            {song.cover_image_url && (
+              <div className="w-48 h-48 rounded-lg shadow-lg overflow-hidden">
+                <img 
+                  src={song.cover_image_url} 
+                  alt={`Capa de ${song.title}`}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+            <div className="text-center space-y-2">
+              <h1 className="text-2xl font-bold" style={getTextStyles('primary')}>
+                {song.title}
+              </h1>
+              {song.artist && (
+                <p className="text-lg" style={getTextStyles('secondary')}>
+                  {song.artist}
+                </p>
+              )}
+              {(song.album || song.year) && (
+                <div className="flex items-center justify-center space-x-2 text-sm" style={getTextStyles('secondary')}>
+                  {song.album && <span>{song.album}</span>}
+                  {song.album && song.year && <span>•</span>}
+                  {song.year && <span>{song.year}</span>}
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Player Section */}
           <div className="space-y-4 w-full flex flex-col items-center">
             <WaveSurferPlayer

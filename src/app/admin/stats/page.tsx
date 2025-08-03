@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Card, Row, Col, Statistic, Table, Typography, Space, Tag, Button, message } from 'antd'
+import { Card, Row, Col, Statistic, Table, Typography, Space, Tag, Button, App } from 'antd'
 import { 
   SoundOutlined, 
   UnorderedListOutlined, 
@@ -33,6 +33,7 @@ interface OverallStats {
 }
 
 export default function StatsOverviewPage() {
+  const { message } = App.useApp()
   const [overallStats, setOverallStats] = useState<OverallStats>({
     total_songs: 0,
     total_playlists: 0,

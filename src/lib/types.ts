@@ -8,6 +8,14 @@ export interface Song {
   duration?: number
   upload_date: string
   listen_count: number
+  // Campos de metadados extraídos
+  album?: string
+  year?: number
+  genre?: string
+  cover_image_url?: string
+  cover_image_key?: string
+  metadata?: any
+  created_at?: string
   // Campos de transcrição ElevenLabs
   transcription_status?: 'pending' | 'processing' | 'completed' | 'failed'
   transcribed_text?: string

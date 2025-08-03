@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { Upload, Button, Form, Input, Card, message, Progress, Space, Typography, Divider } from 'antd'
+import { Upload, Button, Form, Input, Card, Progress, Space, Typography, Divider, Tag, App } from 'antd'
 import { 
   CloudUploadOutlined, 
   SoundOutlined,
@@ -23,6 +23,7 @@ interface UploadFile {
 }
 
 export default function UploadPage() {
+  const { message } = App.useApp()
   const [form] = Form.useForm()
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
@@ -30,6 +31,8 @@ export default function UploadPage() {
   const [transcribing, setTranscribing] = useState(false)
   const [enableTranscription, setEnableTranscription] = useState(true)
   const [transcriptionResult, setTranscriptionResult] = useState<string>('')
+  const [extractedMetadata, setExtractedMetadata] = useState<any>(null)
+  const [extractingMetadata, setExtractingMetadata] = useState(false)
   const router = useRouter()
 
   const handleUpload = async (options: any) => {
@@ -70,10 +73,45 @@ export default function UploadPage() {
 
       setUploadProgress(100)
 
-      // Create song record
+      // Extract metadata from the file
+      setExtractingMetadata(true)
+      let metadata = null
+      
+      try {
+        const metadataFormData = new FormData()
+        metadataFormData.append('file', file)
+        
+        const metadataResponse = await fetch('/api/extract-metadata', {
+          method: 'POST',
+          body: metadataFormData
+        })
+        
+        if (metadataResponse.ok) {
+          const metadataResult = await metadataResponse.json()
+          metadata = metadataResult.metadata
+          setExtractedMetadata(metadata)
+          message.success('Metadados extraídos com sucesso!')
+        } else {
+          console.warn('Erro ao extrair metadados, continuando com upload básico')
+        }
+      } catch (metadataError) {
+        console.warn('Erro ao extrair metadados:', metadataError)
+      } finally {
+        setExtractingMetadata(false)
+      }
+
+      // Create song record with metadata
       const songData = {
-        title: file.name.replace(/\.[^/.]+$/, ""), // Remove extension
-        file_url: publicUrl // Use correct Supabase public URL
+        title: metadata?.title || file.name.replace(/\.[^/.]+$/, ""),
+        artist: metadata?.artist || null,
+        album: metadata?.album || null,
+        year: metadata?.year || null,
+        genre: metadata?.genre || null,
+        duration: metadata?.duration || null,
+        cover_image_url: metadata?.coverImageUrl || null,
+        cover_image_key: metadata?.coverImageKey || null,
+        metadata: metadata?.fullMetadata || null,
+        file_url: publicUrl
       }
 
       const createSongResponse = await fetch('/api/songs', {
@@ -190,10 +228,10 @@ export default function UploadPage() {
             </div>
 
             <Dragger {...uploadProps}>
-              {uploading ? (
+              {uploading || extractingMetadata ? (
                 <div>
                   <LoadingOutlined style={{ fontSize: 48, color: '#1890ff' }} />
-                  <p>Fazendo upload...</p>
+                  <p>{extractingMetadata ? 'Extraindo metadados...' : 'Fazendo upload...'}</p>
                   <Progress percent={uploadProgress} />
                 </div>
               ) : uploadedFile ? (
@@ -216,13 +254,39 @@ export default function UploadPage() {
             {uploadedFile && (
               <>
                 <Divider>Informações da Música</Divider>
+                
+                {extractedMetadata && (
+                  <Card size="small" style={{ marginBottom: 16, backgroundColor: '#f6ffed' }}>
+                    <Space direction="vertical" size="small" style={{ width: '100%' }}>
+                      <Text strong style={{ color: '#52c41a' }}>✓ Metadados extraídos automaticamente:</Text>
+                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                        {extractedMetadata.artist && <Tag color="blue">Artista: {extractedMetadata.artist}</Tag>}
+                        {extractedMetadata.album && <Tag color="green">Álbum: {extractedMetadata.album}</Tag>}
+                        {extractedMetadata.year && <Tag color="orange">Ano: {extractedMetadata.year}</Tag>}
+                        {extractedMetadata.genre && <Tag color="purple">Gênero: {extractedMetadata.genre}</Tag>}
+                        {extractedMetadata.duration && <Tag color="cyan">Duração: {Math.floor(extractedMetadata.duration / 60)}:{(extractedMetadata.duration % 60).toString().padStart(2, '0')}</Tag>}
+                        {extractedMetadata.coverImageUrl && <Tag color="magenta">Capa extraída ✓</Tag>}
+                      </div>
+                      {extractedMetadata.coverImageUrl && (
+                        <div style={{ textAlign: 'center', marginTop: 8 }}>
+                          <img 
+                            src={extractedMetadata.coverImageUrl} 
+                            alt="Capa do álbum" 
+                            style={{ maxWidth: 120, maxHeight: 120, borderRadius: 4 }}
+                          />
+                        </div>
+                      )}
+                    </Space>
+                  </Card>
+                )}
+                
                 <Form
                   form={form}
                   layout="vertical"
                   onFinish={handleFormSubmit}
                   initialValues={{
-                    title: uploadedFile.title,
-                    artist: ''
+                    title: extractedMetadata?.title || uploadedFile.title,
+                    artist: extractedMetadata?.artist || ''
                   }}
                 >
                   <Form.Item

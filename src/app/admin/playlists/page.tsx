@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Table, Button, Space, Tag, Typography, Input, Modal, Form, message, Select, Popconfirm, Card, List, Divider } from 'antd'
+import { Table, Button, Space, Tag, Typography, Input, Modal, Form, App, Select, Popconfirm, Card, List, Divider } from 'antd'
 import { 
   UnorderedListOutlined, 
   DeleteOutlined, 
@@ -193,6 +193,7 @@ function PlaylistSongManager({ songs, selectedSongs, onSongsChange }: PlaylistSo
 }
 
 export default function PlaylistsPage() {
+  const { message } = App.useApp()
   const [playlists, setPlaylists] = useState<Playlist[]>([])
   const [songs, setSongs] = useState<Song[]>([])
   const [loading, setLoading] = useState(true)

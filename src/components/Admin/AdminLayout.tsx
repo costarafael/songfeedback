@@ -147,20 +147,21 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
             />
             
             {breadcrumbs && breadcrumbs.length > 0 && (
-              <Breadcrumb style={{ margin: 0 }}>
-                <Breadcrumb.Item>
-                  <Link href="/admin">Admin</Link>
-                </Breadcrumb.Item>
-                {breadcrumbs.map((crumb, index) => (
-                  <Breadcrumb.Item key={index}>
-                    {crumb.href ? (
+              <Breadcrumb 
+                style={{ margin: 0 }}
+                items={[
+                  {
+                    title: <Link href="/admin">Admin</Link>
+                  },
+                  ...breadcrumbs.map((crumb) => ({
+                    title: crumb.href ? (
                       <Link href={crumb.href}>{crumb.title}</Link>
                     ) : (
                       crumb.title
-                    )}
-                  </Breadcrumb.Item>
-                ))}
-              </Breadcrumb>
+                    )
+                  }))
+                ]}
+              />
             )}
           </div>
 
