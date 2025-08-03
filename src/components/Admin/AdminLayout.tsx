@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu, Button, Typography, Breadcrumb, Avatar, Drawer, Dropdown } from 'antd'
+import { Layout, Menu, Button, Typography, Breadcrumb, Avatar, Drawer, Dropdown, Spin } from 'antd'
 import {
   DashboardOutlined,
   SoundOutlined,
@@ -16,6 +16,7 @@ import {
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-auth'
+import { useAuthGuard } from '@/hooks/useAuthGuard'
 
 const { Header, Sider, Content } = Layout
 const { Title } = Typography
@@ -32,8 +33,11 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
   const router = useRouter()
   const pathname = usePathname()
   const supabase = createClient()
+  
+  // Auth guard hook - protects admin routes
+  const { user, loading, authenticated } = useAuthGuard()
 
-  // Mobile detection
+  // Mobile detection - must be before any early returns
   useEffect(() => {
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
@@ -43,6 +47,28 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
     window.addEventListener('resize', checkMobile)
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
+
+  // Show loading spinner while checking authentication
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        minHeight: '100vh',
+        flexDirection: 'column',
+        gap: 16
+      }}>
+        <Spin size="large" />
+        <span>Verificando autenticação...</span>
+      </div>
+    )
+  }
+
+  // If not authenticated, the useAuthGuard hook will redirect to login
+  if (!authenticated) {
+    return null
+  }
 
   const menuItems = [
     {
