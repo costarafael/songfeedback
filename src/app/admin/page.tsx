@@ -329,7 +329,7 @@ export default function AdminDashboard() {
                   type="primary"
                   icon={<CloudUploadOutlined />}
                   onClick={() => router.push('/admin/upload')}
-                  size={isMobile ? 'small' : 'default'}
+                  size={isMobile ? 'small' : 'middle'}
                 >
                   Fazer Upload
                 </Button>
@@ -414,7 +414,6 @@ export default function AdminDashboard() {
                           {song.transcription_data && (
                             <Tag 
                               color="blue" 
-                              size="small"
                               style={{
                                 fontSize: isMobile ? 10 : 12,
                                 marginTop: isMobile ? 2 : 0
