@@ -1,77 +1,133 @@
+'use client'
+
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { Play } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { Song } from '@/lib/types'
+import FixedThemePlayerWrapper from '@/components/FixedThemePlayerWrapper'
+import { useNeumorphicStyles } from '@/hooks/useNeumorphicStyles'
 
-async function getSongs() {
-  const { data: songs, error } = await supabase
-    .from('songs')
-    .select('*')
-    .order('upload_date', { ascending: false })
+export default function Home() {
+  const [songs, setSongs] = useState<Song[]>([])
+  const [loading, setLoading] = useState(true)
+  const { getButtonStyles, getPanelStyles, getTextStyles } = useNeumorphicStyles()
 
-  if (error) {
-    console.error('Error fetching songs:', error)
-    return []
+  useEffect(() => {
+    async function fetchSongs() {
+      const { data: songs, error } = await supabase
+        .from('songs')
+        .select('*')
+        .order('upload_date', { ascending: false })
+
+      if (error) {
+        console.error('Error fetching songs:', error)
+      } else {
+        setSongs(songs || [])
+      }
+      setLoading(false)
+    }
+
+    fetchSongs()
+  }, [])
+
+  const formatDuration = (duration: number | null) => {
+    if (!duration) return '–:––'
+    const minutes = Math.floor(duration / 60)
+    const seconds = Math.floor(duration % 60)
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`
   }
 
-  return songs as Song[]
-}
-
-export default async function Home() {
-  const songs = await getSongs()
+  if (loading) {
+    return (
+      <FixedThemePlayerWrapper>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="text-xl" style={getTextStyles('primary')}>Carregando músicas...</div>
+        </div>
+      </FixedThemePlayerWrapper>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <FixedThemePlayerWrapper>
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8">Feedback Song</h1>
-        
         <div className="max-w-4xl mx-auto">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-semibold">Músicas Disponíveis</h2>
-            <Link 
-              href="/admin" 
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Admin
-            </Link>
+          {/* Header */}
+          <div className="text-center mb-12">
+            <h1 className="text-4xl font-bold mb-4" style={getTextStyles('primary')}>
+              Feedback Song
+            </h1>
+            <p className="text-lg" style={getTextStyles('secondary')}>
+              Escolha uma música para escutar e reagir
+            </p>
           </div>
 
+          {/* Músicas */}
           {songs.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-gray-600 mb-4">Nenhuma música disponível</p>
+            <div className="text-center py-16">
+              <div className="mb-6" style={getTextStyles('secondary')}>
+                <p className="text-lg mb-4">Nenhuma música disponível</p>
+                <p className="text-sm">Use o painel administrativo para adicionar músicas</p>
+              </div>
               <Link 
                 href="/admin" 
-                className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+                className="inline-flex items-center px-6 py-3 text-lg font-medium"
+                style={getButtonStyles(false, 'medium')}
               >
-                Adicionar Primeira Música
+                Acessar Admin
               </Link>
             </div>
           ) : (
-            <div className="grid gap-4">
+            <div className="space-y-4">
               {songs.map((song) => (
-                <div key={song.id} className="bg-white rounded-lg shadow-md p-6">
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="text-xl font-semibold">{song.title}</h3>
-                      {song.artist && (
-                        <p className="text-gray-600">por {song.artist}</p>
-                      )}
-                      <p className="text-sm text-gray-500 mt-2">
-                        {song.listen_count} reproduções
-                      </p>
+                <div
+                  key={song.id}
+                  className="rounded-2xl p-6 transition-all duration-200 hover:scale-[1.01]"
+                  style={getPanelStyles()}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="text-xl font-semibold mb-1 truncate" style={getTextStyles('primary')}>
+                        {song.title}
+                      </h3>
+                      
+                      <div className="flex items-center space-x-4 text-sm" style={getTextStyles('secondary')}>
+                        {song.artist && (
+                          <span>por {song.artist}</span>
+                        )}
+                        <span>•</span>
+                        <span>{formatDuration(song.duration)}</span>
+                        <span>•</span>
+                        <span>{song.listen_count || 0} reproduções</span>
+                      </div>
                     </div>
+                    
                     <Link
                       href={`/player/${song.id}`}
-                      className="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium"
+                      className="flex items-center space-x-2 px-6 py-3 ml-4 font-medium transition-all duration-200"
+                      style={getButtonStyles(false, 'medium')}
                     >
-                      Escutar & Reagir
+                      <Play className="w-5 h-5" />
+                      <span>Escutar</span>
                     </Link>
                   </div>
                 </div>
               ))}
             </div>
           )}
+
+          {/* Admin Link */}
+          <div className="text-center mt-12 pt-8 border-t border-purple-500/20">
+            <Link 
+              href="/admin" 
+              className="inline-flex items-center px-4 py-2 text-sm font-medium"
+              style={getButtonStyles(false, 'small')}
+            >
+              Painel Administrativo
+            </Link>
+          </div>
         </div>
       </div>
-    </div>
+    </FixedThemePlayerWrapper>
   )
 }
