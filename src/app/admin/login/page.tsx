@@ -27,20 +27,30 @@ export default function AdminLogin() {
 
   const handleLogin = async (values: { email: string; password: string }) => {
     setLoading(true)
+    console.log('🔐 Tentando login com:', values.email)
+    
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       })
 
+      console.log('🔐 Resposta do login:', { data, error })
+
       if (error) {
+        console.error('❌ Erro no login:', error)
         message.error('Erro no login: ' + error.message)
-      } else {
+      } else if (data.user) {
+        console.log('✅ Login bem-sucedido:', data.user.id)
         message.success('Login realizado com sucesso!')
         router.push('/admin')
+      } else {
+        console.warn('⚠️ Login sem erro mas sem usuário')
+        message.error('Login falhou - usuário não encontrado')
       }
     } catch (error) {
-      message.error('Erro inesperado durante o login')
+      console.error('💥 Erro inesperado:', error)
+      message.error('Erro inesperado durante o login: ' + (error instanceof Error ? error.message : 'Erro desconhecido'))
     } finally {
       setLoading(false)
     }
