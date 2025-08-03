@@ -31,7 +31,7 @@ export default function Home() {
     fetchSongs()
   }, [])
 
-  const formatDuration = (duration: number | null) => {
+  const formatDuration = (duration: number | null | undefined) => {
     if (!duration) return '–:––'
     const minutes = Math.floor(duration / 60)
     const seconds = Math.floor(duration % 60)
