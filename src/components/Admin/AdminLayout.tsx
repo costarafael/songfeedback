@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Layout, Menu, Button, Typography, Breadcrumb, Avatar, Drawer } from 'antd'
+import { Layout, Menu, Button, Typography, Breadcrumb, Avatar, Drawer, Dropdown } from 'antd'
 import {
   DashboardOutlined,
   SoundOutlined,
@@ -11,9 +11,11 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   UserOutlined,
+  LogoutOutlined,
 } from '@ant-design/icons'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
+import { createClient } from '@/lib/supabase-auth'
 
 const { Header, Sider, Content } = Layout
 const { Title } = Typography
@@ -29,6 +31,7 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
   const [isMobile, setIsMobile] = useState(false)
   const router = useRouter()
   const pathname = usePathname()
+  const supabase = createClient()
 
   // Mobile detection
   useEffect(() => {
@@ -93,6 +96,24 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
     }
     return []
   }
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut()
+      router.push('/admin/login')
+    } catch (error) {
+      console.error('Erro no logout:', error)
+    }
+  }
+
+  const userMenuItems = [
+    {
+      key: 'logout',
+      icon: <LogoutOutlined />,
+      label: 'Sair',
+      onClick: handleLogout,
+    },
+  ]
 
   const SidebarContent = () => (
     <>
@@ -221,8 +242,12 @@ export default function AdminLayout({ children, title, breadcrumbs }: AdminLayou
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: isMobile ? 8 : 16 }}>
-            <Avatar icon={<UserOutlined />} size={isMobile ? 'small' : 'default'} />
-            {!isMobile && <span>Admin</span>}
+            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+              <div style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 8 }}>
+                <Avatar icon={<UserOutlined />} size={isMobile ? 'small' : 'default'} />
+                {!isMobile && <span>Admin</span>}
+              </div>
+            </Dropdown>
           </div>
         </Header>
 
