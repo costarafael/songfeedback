@@ -64,10 +64,9 @@ export default function SongsPage() {
 
   const handleDelete = async (id: string) => {
     try {
-      const response = await fetch(`/api/songs`, {
+      const response = await fetch(`/api/songs/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id })
+        headers: { 'Content-Type': 'application/json' }
       })
       
       if (response.ok) {
