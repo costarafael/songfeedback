@@ -29,10 +29,21 @@ export async function GET(
       )
     }
 
+    // Buscar reações da música
+    const { data: reactions, error: reactionsError } = await supabase
+      .from('reactions')
+      .select('*')
+      .eq('song_id', songId)
+      .order('timestamp', { ascending: true })
+
+    if (reactionsError) {
+      console.error('Error fetching reactions:', reactionsError)
+    }
+
     // Buscar estatísticas das sessões
     const { data: sessionStats, error: sessionError } = await supabase
       .from('listening_sessions')
-      .select('total_listened_time, completion_percentage, skip_count')
+      .select('*')
       .eq('song_id', songId)
 
     if (sessionError) {
@@ -76,10 +87,12 @@ export async function GET(
       totalSkips,
       avgSkipsPerSession: totalSessions > 0 ? Math.round((totalSkips / totalSessions) * 100) / 100 : 0,
       heatmap,
-      mostSkippedSegments
+      mostSkippedSegments,
+      reactions: reactions || [],
+      totalReactions: reactions?.length || 0
     }
 
-    return NextResponse.json({ analytics })
+    return NextResponse.json(analytics)
 
   } catch (error) {
     console.error('Error in song analytics API:', error)
