@@ -208,6 +208,16 @@ export default function StatsCharts({ reactions, duration, reactionStats }: Stat
             </Text>
           </div>
         </div>
+        
+        {/* Legend - moved here to be attached to the main chart */}
+        <div style={{ marginTop: 16, padding: 12, backgroundColor: '#f0f0f0', borderRadius: 6 }}>
+          <Title level={5} style={{ margin: '0 0 8px 0' }}>Como interpretar este gráfico</Title>
+          <Space direction="vertical" size="small">
+            <Text style={{ fontSize: 12 }}>• A altura das barras representa a quantidade total de reações naquele momento</Text>
+            <Text style={{ fontSize: 12 }}>• Passe o mouse sobre as barras para ver detalhes específicos de tempo e contagem</Text>
+            <Text style={{ fontSize: 12 }}>• Barras mais opacas indicam maior concentração de reações</Text>
+          </Space>
+        </div>
       </Card>
 
       {/* Reaction Distribution by Time */}
@@ -271,15 +281,6 @@ export default function StatsCharts({ reactions, duration, reactionStats }: Stat
         </Row>
       </Card>
 
-      {/* Legend */}
-      <Card size="small" title="Como interpretar os gráficos">
-        <Space direction="vertical" size="small">
-          <Text>• A altura das barras no gráfico principal representa a quantidade total de reações</Text>
-          <Text>• A intensidade das cores nos gráficos por tipo mostra a concentração de cada reação</Text>
-          <Text>• Passe o mouse sobre as barras para ver detalhes específicos de tempo e contagem</Text>
-          <Text>• Segmentos mais opacos indicam maior concentração de reações naquele momento</Text>
-        </Space>
-      </Card>
     </Space>
   )
 }

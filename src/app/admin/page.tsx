@@ -23,6 +23,7 @@ interface DashboardStats {
   totalSongs: number
   totalPlaylists: number
   totalPlays: number
+  totalUniqueListeners: number
   recentSongs: Song[]
 }
 
@@ -32,6 +33,7 @@ export default function AdminDashboard() {
     totalSongs: 0,
     totalPlaylists: 0,
     totalPlays: 0,
+    totalUniqueListeners: 0,
     recentSongs: []
   })
   const [loading, setLoading] = useState(true)
@@ -45,24 +47,22 @@ export default function AdminDashboard() {
     try {
       setLoading(true)
       
-      // Fetch songs
+      // Fetch dashboard stats
+      const statsResponse = await fetch('/api/stats/dashboard')
+      const statsData = await statsResponse.json()
+      
+      // Fetch songs for recent songs list
       const songsResponse = await fetch('/api/songs')
       const songsData = await songsResponse.json()
       const songs = songsData.songs || []
       
-      // Fetch playlists
-      const playlistsResponse = await fetch('/api/playlists')
-      const playlistsData = await playlistsResponse.json()
-      const playlists = playlistsData.playlists || []
-      
-      // Calculate stats
-      const totalPlays = songs.reduce((sum: number, song: Song) => sum + (song.listen_count || 0), 0)
       const recentSongs = songs.slice(0, 5) // Most recent 5 songs
       
       setStats({
-        totalSongs: songs.length,
-        totalPlaylists: playlists.length,
-        totalPlays,
+        totalSongs: statsData.totalSongs || 0,
+        totalPlaylists: statsData.totalPlaylists || 0,
+        totalPlays: statsData.totalPlays || 0,
+        totalUniqueListeners: statsData.totalUniqueListeners || 0,
         recentSongs
       })
     } catch (error) {
@@ -184,7 +184,7 @@ export default function AdminDashboard() {
           <Card size={isMobile ? 'small' : 'default'}>
             <Statistic
               title="Ouvintes Únicos"
-              value={Math.floor(stats.totalPlays * 0.7)} // Estimated unique listeners
+              value={stats.totalUniqueListeners}
               prefix={<UserOutlined />}
               loading={loading}
               valueStyle={{ 
@@ -288,7 +288,7 @@ export default function AdminDashboard() {
                   fontSize: isMobile ? 16 : 18 
                 }}
               >
-                Músicas Recentes
+                Fazer upload de música
               </Text>
             }
             size={isMobile ? 'small' : 'default'}

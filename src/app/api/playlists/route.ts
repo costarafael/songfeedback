@@ -47,7 +47,7 @@ export async function GET() {
       ) || []
     })) || []
 
-    return NextResponse.json(transformedPlaylists)
+    return NextResponse.json({ playlists: transformedPlaylists })
 
   } catch (error) {
     console.error('API error:', error)

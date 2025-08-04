@@ -29,7 +29,25 @@ export default function AdminLogin() {
     setLoading(true)
     console.log('🔐 Tentando login com:', values.email)
     
+    // Debug environment variables
+    console.log('🔧 Debug - Environment check:')
+    console.log('- NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL)
+    console.log('- NEXT_PUBLIC_SUPABASE_ANON_KEY exists:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)
+    console.log('- Client created successfully:', !!supabase)
+    
     try {
+      // Test via API first
+      console.log('🧪 Testando via API primeiro...')
+      const apiResponse = await fetch('/api/debug-login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values)
+      })
+      const apiResult = await apiResponse.json()
+      console.log('📡 API result:', apiResult)
+      
+      // Now test via client
+      console.log('🔐 Testando via cliente browser...')
       const { data, error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
