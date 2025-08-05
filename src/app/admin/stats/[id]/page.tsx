@@ -14,6 +14,7 @@ import AdminLayout from '@/components/Admin/AdminLayout'
 import StatsCharts from '@/components/Admin/StatsCharts'
 import ListeningHeatmap from '@/components/Admin/ListeningHeatmap'
 import SkippedSegments from '@/components/Admin/SkippedSegments'
+import LyricsDisplay from '@/components/Admin/LyricsDisplay'
 import { Reaction, Song, ReactionStats } from '@/lib/types'
 import { useResponsive } from '@/hooks/useResponsive'
 
@@ -295,6 +296,13 @@ export default function SongStatsPage({ params }: { params: Promise<{ id: string
             </div>
           </Card>
         )}
+
+        {/* Lyrics Display */}
+        <LyricsDisplay 
+          transcriptionData={song.transcription_data}
+          isMobile={isMobile}
+          songTitle={song.title}
+        />
 
         {/* Timeline Visualization */}
         {reactions.length > 0 && (
