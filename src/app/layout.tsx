@@ -3,6 +3,7 @@ import "./globals.css";
 import "@/styles/reaction-animations.css";
 import { IBM_Plex_Mono } from 'next/font/google'
 import { PlayerColorProvider } from '@/hooks/usePlayerColors'
+import MazeScript from '@/components/MazeScript'
 
 const ibmPlexMono = IBM_Plex_Mono({
   subsets: ['latin'],
@@ -23,6 +24,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={`bg-gray-50 text-gray-900 ${ibmPlexMono.variable}`}>
+        <MazeScript />
         <PlayerColorProvider>
           {children}
         </PlayerColorProvider>
