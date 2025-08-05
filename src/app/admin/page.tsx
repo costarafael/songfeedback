@@ -54,7 +54,7 @@ export default function AdminDashboard() {
       // Fetch songs for recent songs list
       const songsResponse = await fetch('/api/songs')
       const songsData = await songsResponse.json()
-      const songs = songsData.songs || []
+      const songs = Array.isArray(songsData) ? songsData : []
       
       const recentSongs = songs.slice(0, 5) // Most recent 5 songs
       
@@ -199,7 +199,7 @@ export default function AdminDashboard() {
 
       <Row gutter={[isMobile ? 8 : 16, isMobile ? 8 : 16]}>
         {/* Quick Actions - Responsive */}
-        <Col xs={24} lg={12}>
+        <Col xs={24}>
           <Card 
             title={
               <Text 
@@ -278,192 +278,6 @@ export default function AdminDashboard() {
           </Card>
         </Col>
 
-        {/* Recent Songs - Responsive */}
-        <Col xs={24} lg={12}>
-          <Card 
-            title={
-              <Text 
-                strong 
-                style={{ 
-                  fontSize: isMobile ? 16 : 18 
-                }}
-              >
-                Fazer upload de música
-              </Text>
-            }
-            size={isMobile ? 'small' : 'default'}
-            style={{ 
-              height: isMobile ? 'auto' : (isTablet ? 350 : 400)
-            }}
-            extra={
-              <Button 
-                type="link" 
-                size={isMobile ? 'small' : 'small'}
-                onClick={() => router.push('/admin/songs')}
-                style={{
-                  fontSize: isMobile ? 12 : 14
-                }}
-              >
-                Ver todas
-              </Button>
-            }
-          >
-            {stats.recentSongs.length === 0 ? (
-              <Empty
-                description={
-                  <Text 
-                    type="secondary" 
-                    style={{ 
-                      fontSize: isMobile ? 12 : 14 
-                    }}
-                  >
-                    Nenhuma música encontrada
-                  </Text>
-                }
-                image={Empty.PRESENTED_IMAGE_SIMPLE}
-                imageStyle={{
-                  height: isMobile ? 40 : 60
-                }}
-              >
-                <Button 
-                  type="primary"
-                  icon={<CloudUploadOutlined />}
-                  onClick={() => router.push('/admin/upload')}
-                  size={isMobile ? 'small' : 'middle'}
-                >
-                  Fazer Upload
-                </Button>
-              </Empty>
-            ) : (
-              <List
-                dataSource={stats.recentSongs}
-                loading={loading}
-                size={isMobile ? 'small' : 'default'}
-                renderItem={(song) => (
-                  <List.Item
-                    style={{
-                      padding: isMobile ? '8px 0' : '12px 0'
-                    }}
-                    actions={isMobile ? [
-                      <Button
-                        key="stats"
-                        type="text"
-                        size="small"
-                        icon={<BarChartOutlined />}
-                        onClick={() => router.push(`/admin/stats/${song.id}`)}
-                        style={{ fontSize: 12 }}
-                      />,
-                      <Button
-                        key="play"
-                        type="text"
-                        size="small"
-                        icon={<EyeOutlined />}
-                        onClick={() => window.open(`/player/${song.id}`, '_blank')}
-                        style={{ fontSize: 12 }}
-                      />
-                    ] : [
-                      <Button
-                        key="stats"
-                        type="text"
-                        size="small"
-                        icon={<BarChartOutlined />}
-                        onClick={() => router.push(`/admin/stats/${song.id}`)}
-                      >
-                        Stats
-                      </Button>,
-                      <Button
-                        key="play"
-                        type="text"
-                        size="small"
-                        icon={<EyeOutlined />}
-                        onClick={() => window.open(`/player/${song.id}`, '_blank')}
-                      >
-                        Ver
-                      </Button>
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar 
-                          icon={<SoundOutlined />} 
-                          style={{ 
-                            backgroundColor: '#8b5cf6',
-                            width: isMobile ? 32 : 40,
-                            height: isMobile ? 32 : 40
-                          }}
-                        />
-                      }
-                      title={
-                        <Space 
-                          size="small"
-                          wrap={isMobile}
-                          style={{
-                            display: 'flex',
-                            flexDirection: isMobile ? 'column' : 'row',
-                            alignItems: isMobile ? 'flex-start' : 'center'
-                          }}
-                        >
-                          <Text 
-                            strong 
-                            style={{ 
-                              fontSize: isMobile ? 13 : 14 
-                            }}
-                          >
-                            {song.title}
-                          </Text>
-                          {song.transcription_data && (
-                            <Tag 
-                              color="blue" 
-                              style={{
-                                fontSize: isMobile ? 10 : 12,
-                                marginTop: isMobile ? 2 : 0
-                              }}
-                            >
-                              COM LETRA
-                            </Tag>
-                          )}
-                        </Space>
-                      }
-                      description={
-                        <Space 
-                          split={<span>•</span>} 
-                          size="small"
-                          wrap={isMobile}
-                          style={{
-                            fontSize: isMobile ? 11 : 12
-                          }}
-                        >
-                          {song.artist && (
-                            <Text 
-                              type="secondary"
-                              style={{ fontSize: isMobile ? 11 : 12 }}
-                            >
-                              {song.artist}
-                            </Text>
-                          )}
-                          <Text 
-                            type="secondary"
-                            style={{ fontSize: isMobile ? 11 : 12 }}
-                          >
-                            {song.listen_count || 0} plays
-                          </Text>
-                          {song.duration && (
-                            <Text 
-                              type="secondary"
-                              style={{ fontSize: isMobile ? 11 : 12 }}
-                            >
-                              {formatDuration(song.duration)}
-                            </Text>
-                          )}
-                        </Space>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
-            )}
-          </Card>
-        </Col>
       </Row>
     </AdminLayout>
   )
